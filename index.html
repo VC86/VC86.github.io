@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeckWelder</title>
+    <style>
+        :root {
+            --bg-main: #121212;
+            --bg-panel: #1a1a1a;
+            --bg-btn: #2e2e2e;
+            --text-main: #FFFFFF;
+            --text-accent: #C8A97E;
+            --text-muted: #888888;
+            --color-land: #8B5E3C;
+            --color-ramp: #4CAF50;
+            --color-draw: #2196F3;
+            --color-removal: #F44336;
+            --color-others: #9E9E9E;
+            --color-keep: #4CAF50;
+            --color-mull: #F44336;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-panel);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: var(--text-accent);
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            background-color: #000;
+            color: #FFF;
+            border: 1px solid #333;
+            padding: 5px;
+            resize: none;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover:not(:disabled) { opacity: 0.8; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-primary { background-color: var(--text-accent); color: #000; }
+        .btn-secondary { background-color: var(--bg-btn); color: var(--text-accent); }
+        
+        .stats-panel {
+            border: 1px solid #333;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .stats-panel legend { font-size: 12px; }
+        .stat-row { font-family: Courier, monospace; font-size: 13px; margin: 5px 0; }
+
+        /* Main Area */
+        .main-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .hand-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .card-slot {
+            background-color: var(--bg-panel);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            width: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .card-img {
+            width: 150px;
+            height: 210px;
+            background-color: #2a2a2a;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .card-name { font-size: 11px; font-weight: bold; color: var(--text-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .card-tags { font-size: 10px; font-style: italic; color: var(--text-muted); }
+
+        .decision-panel {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            padding: 20px 0;
+        }
+
+        .btn-keep { background-color: var(--color-keep); color: white; width: 150px; padding: 15px;}
+        .btn-mull { background-color: var(--color-mull); color: white; width: 150px; padding: 15px;}
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-main);
+            width: 600px;
+            max-height: 80vh;
+            border-radius: 8px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .insight-group {
+            border: 1px solid #333;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .insight-group legend { font-weight: bold; padding: 0 5px; }
+        .insight-row { font-family: Courier, monospace; font-size: 13px; margin: 5px 0; border-bottom: 1px solid #222; padding-bottom: 2px;}
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>DECKLIST</h3>
+        <textarea id="deckInput"></textarea>
+        <button class="btn-primary" id="btnAnalyze">ANALYZE DECK</button>
+        <button class="btn-secondary" id="btnInsights">VIEW CARD INSIGHTS</button>
+        <button class="btn-secondary" id="btnExport">EXPORT STATS (CSV)</button>
+        <button class="btn-secondary" id="btnImport" onclick="document.getElementById('fileInput').click()">IMPORT STATS (CSV)</button>
+        <input type="file" id="fileInput" accept=".csv" style="display: none;">
+
+        <fieldset class="stats-panel">
+            <legend>KEEP SCORE BY CAT.</legend>
+            <div id="scoreLabels"></div>
+        </fieldset>
+    </div>
+
+    <!-- Main Area -->
+    <div class="main-area">
+        <div class="hand-container" id="handContainer">
+            <!-- Cards will be injected here -->
+        </div>
+        <div class="decision-panel">
+            <button class="btn-keep" id="btnKeep" disabled>KEEP</button>
+            <button class="btn-mull" id="btnMull" disabled>MULLIGAN</button>
+        </div>
+    </div>
+
+    <!-- Insights Modal -->
+    <div class="modal-overlay" id="insightsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Card Insights</h3>
+                <button class="btn-secondary" style="padding: 5px 10px;" onclick="document.getElementById('insightsModal').style.display='none'">X</button>
+            </div>
+            <div class="modal-body" id="insightsBody"></div>
+        </div>
+    </div>
+
+<script>
+    // --- Configuration ---
+    const TAGS = {
+        land:    { label: "Land",    color: "var(--color-land)",    query: "t:land format:edh" },
+        ramp:    { label: "Ramp",    color: "var(--color-ramp)",    query: "otag:ramp format:edh" },
+        draw:    { label: "Draw",    color: "var(--color-draw)",    query: "otag:draw format:edh" },
+        removal: { label: "Removal", color: "var(--color-removal)", query: "otag:removal format:edh" },
+        others:  { label: "Others",  color: "var(--color-others)",  query: null }
+    };
+
+    // --- State ---
+    let logs = [];
+    let cardDB = {};
+    let nameMap = {};
+    let deck = [];
+    let currentHand = [];
+    let categoryCounts = {};
+
+    // --- Utility Functions ---
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    // --- Statistics Engine ---
+    function logHand(handCards, handTags, kept) {
+        logs.push({ cards: handCards, tags: Array.from(handTags), kept: kept ? 1 : 0 });
+    }
+
+    function getCategoryMetrics() {
+        if (!logs.length) return {};
+        const stats = {};
+        logs.forEach(entry => {
+            entry.tags.forEach(tag => {
+                if (!stats[tag]) stats[tag] = [];
+                stats[tag].push(entry.kept);
+            });
+        });
+        const results = {};
+        for (const [tag, decisions] of Object.entries(stats)) {
+            const sum = decisions.reduce((a, b) => a + b, 0);
+            results[tag] = ((sum / decisions.length) * 100).toFixed(1);
+        }
+        return results;
+    }
+
+    function getCardMetrics() {
+        if (!logs.length) return {};
+        const stats = {};
+        logs.forEach(entry => {
+            entry.cards.forEach(card => {
+                if (!stats[card]) stats[card] = [];
+                stats[card].push(entry.kept);
+            });
+        });
+        const results = {};
+        for (const [name, decisions] of Object.entries(stats)) {
+            const sum = decisions.reduce((a, b) => a + b, 0);
+            results[name] = {
+                score: parseFloat(((sum / decisions.length) * 100).toFixed(1)),
+                seen: decisions.length
+            };
+        }
+        return results;
+    }
+
+    function exportToCSV() {
+        let csv = 'kept,tags,cards\n';
+        logs.forEach(entry => {
+            csv += `${entry.kept},${entry.tags.join('|')},${entry.cards.join('|')}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'deckwelder_stats.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importFromCSV(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.trim().split('\n');
+            if (lines.length > 1) {
+                logs = []; // Clear existing
+                for (let i = 1; i < lines.length; i++) {
+                    const [kept, tagsStr, cardsStr] = lines[i].split(',');
+                    logs.push({
+                        kept: parseInt(kept),
+                        tags: tagsStr ? tagsStr.split('|') : [],
+                        cards: cardsStr ? cardsStr.split('|') : []
+                    });
+                }
+                updateUIScores();
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // --- App Logic ---
+    function initUI() {
+        const scorePanel = document.getElementById('scoreLabels');
+        for (const [key, info] of Object.entries(TAGS)) {
+            const el = document.createElement('div');
+            el.className = 'stat-row';
+            el.id = `score-${key}`;
+            el.style.color = info.color;
+            el.innerText = `${info.label} (0): --`;
+            scorePanel.appendChild(el);
+        }
+    }
+
+    function parseDecklist(text) {
+        deck = [];
+        const unique = new Set();
+        const lines = text.trim().split('\n');
+        
+        lines.forEach(line => {
+            line = line.trim();
+            if (!line) return;
+            const match = line.match(/^(\d+)[x\s]+(.+)$/);
+            const qty = match ? parseInt(match[1]) : 1;
+            const name = match ? match[2].trim() : line;
+            
+            for (let i = 0; i < qty; i++) deck.push(name);
+            unique.add(name);
+        });
+        return Array.from(unique);
+    }
+
+    async function analyzeDeck() {
+        const text = document.getElementById('deckInput').value;
+        const uniqueNames = parseDecklist(text);
+        if (!uniqueNames.length) return;
+
+        const btnAnalyze = document.getElementById('btnAnalyze');
+        btnAnalyze.disabled = true;
+        btnAnalyze.innerText = "FETCHING...";
+
+        cardDB = {};
+        nameMap = {};
+        categoryCounts = {};
+        for (const t in TAGS) categoryCounts[t] = 0;
+
+        // 1. Base Identity Fetch (Chunks of 75)
+        for (let i = 0; i < uniqueNames.length; i += 75) {
+            const batch = uniqueNames.slice(i, i + 75);
+            try {
+                const res = await fetch("https://api.scryfall.com/cards/collection", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifiers: batch.map(n => ({ name: n })) })
+                });
+                const data = await res.json();
+                
+                (data.data || []).forEach(card => {
+                    const offName = card.name;
+                    const inputName = batch.find(n => offName.toLowerCase().includes(n.toLowerCase())) || offName;
+                    nameMap[inputName] = offName;
+                    
+                    let imgUrl = "";
+                    if (card.image_uris) imgUrl = card.image_uris.normal;
+                    else if (card.card_faces && card.card_faces[0].image_uris) imgUrl = card.card_faces[0].image_uris.normal;
+
+                    cardDB[offName] = { name: offName, tags: new Set(), img: imgUrl };
+                });
+            } catch (e) { console.error("Scryfall collection error:", e); }
+            await delay(100);
+        }
+
+        // 2. Tagging via specific Queries (Chunks of 20 to keep URL length safe)
+        const cardNames = Object.keys(cardDB);
+        for (const [tagKey, info] of Object.entries(TAGS)) {
+            if (!info.query) continue;
+            for (let i = 0; i < cardNames.length; i += 20) {
+                const chunk = cardNames.slice(i, i + 20);
+                const nameFilter = chunk.map(n => `!"${n}"`).join(" or ");
+                const q = `${info.query} (${nameFilter})`;
+                
+                try {
+                    const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}`;
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const data = await res.json();
+                        (data.data || []).forEach(card => {
+                            if (cardDB[card.name]) cardDB[card.name].tags.add(tagKey);
+                        });
+                    }
+                } catch (e) { console.error("Scryfall search error:", e); }
+                await delay(100);
+            }
+        }
+
+        // Apply "others" and counts
+        Object.values(cardDB).forEach(data => {
+            if (data.tags.size === 0) data.tags.add("others");
+            data.tags.forEach(t => {
+                if (categoryCounts[t] !== undefined) categoryCounts[t]++;
+            });
+        });
+
+        updateUIScores();
+        btnAnalyze.disabled = false;
+        btnAnalyze.innerText = "ANALYZE DECK";
+        drawHand();
+    }
+
+    function drawHand() {
+        if (!deck.length) return;
+        
+        // Shuffle
+        let shuffled = [...deck];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        
+        currentHand = shuffled.slice(0, 7);
+        const container = document.getElementById('handContainer');
+        container.innerHTML = ""; // clear
+
+        currentHand.forEach(name => {
+            const offName = nameMap[name] || name;
+            const data = cardDB[offName] || { img: "", tags: new Set(["others"]) };
+            
+            const slot = document.createElement('div');
+            slot.className = 'card-slot';
+            
+            const imgEl = document.createElement('img');
+            imgEl.className = 'card-img';
+            if (data.img) imgEl.src = data.img;
+            
+            const nameEl = document.createElement('div');
+            nameEl.className = 'card-name';
+            nameEl.innerText = name;
+            nameEl.title = name; // tooltip
+            
+            const tagStr = Array.from(data.tags).map(t => TAGS[t]?.label).filter(Boolean).join(", ");
+            const tagEl = document.createElement('div');
+            tagEl.className = 'card-tags';
+            tagEl.innerText = tagStr;
+
+            slot.appendChild(imgEl);
+            slot.appendChild(nameEl);
+            slot.appendChild(tagEl);
+            container.appendChild(slot);
+        });
+
+        document.getElementById('btnKeep').disabled = false;
+        document.getElementById('btnMull').disabled = false;
+    }
+
+    function recordDecision(kept) {
+        const handTags = new Set();
+        const handCards = [];
+        
+        currentHand.forEach(name => {
+            const offName = nameMap[name] || name;
+            handCards.push(offName);
+            const data = cardDB[offName] || { tags: new Set(["others"]) };
+            data.tags.forEach(t => handTags.add(t));
+        });
+
+        logHand(handCards, handTags, kept);
+        updateUIScores();
+        drawHand();
+    }
+
+    function updateUIScores() {
+        const scores = getCategoryMetrics();
+        for (const [tag, info] of Object.entries(TAGS)) {
+            const el = document.getElementById(`score-${tag}`);
+            if (!el) continue;
+            
+            const cnt = categoryCounts[tag] || 0;
+            const score = scores[tag];
+            
+            if (score !== undefined) {
+                el.innerText = `${info.label} (${cnt}): ${score}%`;
+                el.style.color = parseFloat(score) >= 50 ? "var(--color-keep)" : info.color;
+            } else {
+                el.innerText = `${info.label} (${cnt}): --`;
+                el.style.color = info.color;
+            }
+        }
+    }
+
+    function showInsights() {
+        const body = document.getElementById('insightsBody');
+        body.innerHTML = "";
+        const cardStats = getCardMetrics();
+        
+        ['land', 'ramp', 'draw', 'removal', 'others'].forEach(tagKey => {
+            const items = Object.entries(cardStats).filter(([name, stats]) => {
+                const tags = cardDB[name]?.tags || new Set();
+                return tags.has(tagKey);
+            });
+            
+            if (!items.length) return;
+            
+            items.sort((a, b) => b[1].score - a[1].score); // Descending score
+            
+            const group = document.createElement('fieldset');
+            group.className = 'insight-group';
+            group.style.borderColor = TAGS[tagKey].color;
+            
+            const legend = document.createElement('legend');
+            legend.style.color = TAGS[tagKey].color;
+            legend.innerText = TAGS[tagKey].label.toUpperCase();
+            group.appendChild(legend);
+
+            items.forEach(([name, stats]) => {
+                const row = document.createElement('div');
+                row.className = 'insight-row';
+                // Formatting to look somewhat tabular
+                row.innerHTML = `<span style="display:inline-block; width: 250px; color:#fff;">${name}</span> 
+                                 <span style="color:var(--text-accent)">Keep: ${stats.score}%</span> 
+                                 <span style="color:var(--text-muted); margin-left: 10px;">(Seen: ${stats.seen})</span>`;
+                group.appendChild(row);
+            });
+            
+            body.appendChild(group);
+        });
+
+        document.getElementById('insightsModal').style.display = 'flex';
+    }
+
+    // --- Event Listeners ---
+    document.getElementById('btnAnalyze').addEventListener('click', analyzeDeck);
+    document.getElementById('btnKeep').addEventListener('click', () => recordDecision(true));
+    document.getElementById('btnMull').addEventListener('click', () => recordDecision(false));
+    document.getElementById('btnExport').addEventListener('click', exportToCSV);
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        if (e.target.files.length) importFromCSV(e.target.files[0]);
+    });
+    document.getElementById('btnInsights').addEventListener('click', showInsights);
+
+    // Init
+    initUI();
+
+</script>
+</body>
+</html>
