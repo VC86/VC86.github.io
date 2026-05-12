@@ -111,7 +111,7 @@
     <div class="sidebar">
         <h3>DECKLIST</h3>
         <textarea id="deckInput"></textarea>
-        <button class="btn-primary" id="btnAnalyze">ANALYZE DECK</button>
+        <button class="btn-primary" id="btnlyze">LYZE DECK</button>
         <button class="btn-secondary" id="btnExport" disabled>EXPORT STATS (CSV)</button>
         <button class="btn-secondary" id="btnImport" disabled onclick="document.getElementById('fileInput').click()">IMPORT STATS (CSV)</button>
         <input type="file" id="fileInput" accept=".csv" style="display: none;">
@@ -222,11 +222,14 @@
 
     async function analyzeDeck() {
         const text = document.getElementById('deckInput').value;
+        if (!text.trim()) return;
+
+        // 1. Reset state BEFORE parsing so we don't wipe out the results
+        resetState();
+        
+        // 2. Parse the entire text block once
         const uniqueNames = parseDecklist(text);
         if (!uniqueNames.length) return;
-
-        resetState();
-        uniqueNames.forEach(n => parseDecklist(n)); // restore deck array
 
         const btnAnalyze = document.getElementById('btnAnalyze');
         btnAnalyze.disabled = true; btnAnalyze.innerText = "FETCHING...";
@@ -290,7 +293,7 @@
         ['btnExport', 'btnImport', 'btnSim'].forEach(id => document.getElementById(id).disabled = false);
         drawHand();
     }
-
+    
     function drawHand() {
         if (!deck.length) return;
         let shuffled = [...deck];
