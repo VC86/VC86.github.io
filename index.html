@@ -344,7 +344,7 @@
         };
         setTimeout(() => {
             const mappedDeck = deck.map(n => nameMap[n] || n);
-            for (let i = 0; i < 10000; i++) {
+            for (let i = 0; i < 10; i++) {
                 let d = [...mappedDeck];
                 for (let j = d.length - 1; j > 0; j--) { const k = Math.floor(Math.random()*(j+1)); [d[j], d[k]] = [d[k], d[j]]; }
                 const hand = d.slice(0, 7);
@@ -353,7 +353,7 @@
                 const keep = counts.land >= criteria.land.min && counts.land <= criteria.land.max && counts.ramp >= criteria.ramp.min && counts.ramp <= criteria.ramp.max && counts.draw >= criteria.draw.min && counts.draw <= criteria.draw.max;
                 logs.push({ cards: hand, tags: Array.from(tags), kept: keep ? 1 : 0 });
             }
-            updateUIScores(); btn.disabled = false; btn.innerText = "⚡ SIMULATE 10 000";
+            updateUIScores(); btn.disabled = false; btn.innerText = "⚡ +10";
         }, 50);
     }
 
