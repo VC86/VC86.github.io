@@ -245,11 +245,21 @@
             const offName = nameMap[deckCard] || deckCard;
             (cardDB[offName]?.tags || new Set(["others"])).forEach(t => categoryCounts[t]++);
         });
-
+        
         updateUIScores();
-        btnAnalyze.disabled = false; btnAnalyze.innerText = "ANALYZE DECK";
-        ['btnExport', 'btnImport', 'btnSim'].forEach(id => document.getElementById(id).disabled = false);
+        
+        btnAnalyze.disabled = false;
+        btnAnalyze.innerText = "ANALYZE DECK";
+        
+        ['btnExport', 'btnImport', 'btnSim'].forEach(id => {
+            document.getElementById(id).disabled = false;
+        });
+        
         drawHand();
+        
+        // Move focus away from textarea/input so arrow shortcuts work immediately
+        document.body.tabIndex = -1;
+        document.body.focus();
     }
 
     function drawHand() {
@@ -312,71 +322,148 @@
     function rebuildInsights() {
         const grid = document.getElementById('insightsGrid');
         grid.innerHTML = "";
-        if (!logs.length) { document.getElementById('insightsSummary').innerText = "Analyze a deck to begin."; return; }
-
+    
+        if (!logs.length) {
+            document.getElementById('insightsSummary').innerText = "Analyze a deck to begin.";
+            return;
+        }
+    
         const overallKept = logs.reduce((s, e) => s + e.kept, 0);
         const overallPct = (overallKept / logs.length) * 100;
-        document.getElementById('insightsSummary').innerText = `${logs.length.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
-
+    
+        document.getElementById('insightsSummary').innerText =
+            `${logs.length.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
+    
         const cardStats = {};
-        logs.forEach(e => e.cards.forEach(c => { if(!cardStats[c]) cardStats[c]=[]; cardStats[c].push(e.kept); }));
-
+    
+        logs.forEach(e => {
+            e.cards.forEach(c => {
+                if (!cardStats[c]) cardStats[c] = [];
+                cardStats[c].push(e.kept);
+            });
+        });
+    
         ["land", "ramp", "draw", "removal", "others"].forEach(tagKey => {
             const items = Object.entries(cardStats)
                 .filter(([n]) => (cardDB[n]?.tags || new Set(["others"])).has(tagKey))
                 .map(([name, decs]) => {
-                    const score = (decs.reduce((a,b)=>a+b,0) / decs.length) * 100;
-                    const lift = overallPct > 0 ? (score / overallPct) : 1;
-                    return { name, score: score.toFixed(1), seen: decs.length, lift };
-                }).sort((a,b) => b.lift - a.lift);
-
+                    const score = (decs.reduce((a, b) => a + b, 0) / decs.length) * 100;
+                    const lift = overallPct > 0 ? score / overallPct : 1;
+    
+                    return {
+                        name,
+                        score: score.toFixed(1),
+                        seen: decs.length,
+                        lift
+                    };
+                })
+                .sort((a, b) => b.lift - a.lift);
+    
             if (!items.length) return;
-            const col = document.createElement('div'); col.className = 'insight-col';
-            
-            const liftColor = getLiftColor(d.lift);
-            
-            col.innerHTML += `
-                <div class="insight-item">
-                    <div style="color:${liftColor}">
-                        ${bar} &times;${d.lift.toFixed(2)}
-                    </div>
-                    <div class="insight-item-name">
-                        ${d.name} [n=${d.seen}]
-                    </div>
+    
+            const col = document.createElement('div');
+            col.className = 'insight-col';
+    
+            col.innerHTML = `
+                <div class="col-title" style="color:${TAGS[tagKey].color}">
+                    ${TAGS[tagKey].label.toUpperCase()}
                 </div>
             `;
-            
+    
             items.forEach(d => {
-                const bar = "█".repeat(Math.floor(Math.min(1, d.lift/2)*16)).padEnd(16, "░");
-                col.innerHTML += `<div class="insight-item"><div style="color:${d.lift >= 1 ? '#4CAF50':'#F44336'}">${bar} &times;${d.lift.toFixed(2)}</div><div class="insight-item-name">${d.name} [n=${d.seen}]</div></div>`;
+                const bar = "█"
+                    .repeat(Math.floor(Math.min(1, d.lift / 2) * 16))
+                    .padEnd(16, "░");
+    
+                const liftColor = getLiftColor(d.lift);
+    
+                col.innerHTML += `
+                    <div class="insight-item">
+                        <div style="color:${liftColor}">
+                            ${bar} &times;${d.lift.toFixed(2)}
+                        </div>
+                        <div class="insight-item-name">
+                            ${d.name} [n=${d.seen}]
+                        </div>
+                    </div>
+                `;
             });
+    
             grid.appendChild(col);
         });
     }
-
+    
     function startSimulation() {
         const btn = document.getElementById('btnSim');
-        btn.disabled = true; btn.innerText = "SIMULATING...";
+    
+        if (btn.disabled || !deck.length) return;
+    
+        btn.disabled = true;
+        btn.innerText = "SIMULATING...";
+    
         const criteria = {
-            land: { min: parseInt(document.getElementById('crit-land-min').value), max: parseInt(document.getElementById('crit-land-max').value) },
-            ramp: { min: parseInt(document.getElementById('crit-ramp-min').value), max: parseInt(document.getElementById('crit-ramp-max').value) },
-            draw: { min: parseInt(document.getElementById('crit-draw-min').value), max: parseInt(document.getElementById('crit-draw-max').value) }
-        };
-        setTimeout(() => {
-            const mappedDeck = deck.map(n => nameMap[n] || n);
-            for (let i = 0; i < 10; i++) {
-                let d = [...mappedDeck];
-                for (let j = d.length - 1; j > 0; j--) { const k = Math.floor(Math.random()*(j+1)); [d[j], d[k]] = [d[k], d[j]]; }
-                const hand = d.slice(0, 7);
-                const counts = { land:0, ramp:0, draw:0 }, tags = new Set();
-                hand.forEach(c => { (cardDB[c]?.tags || new Set(["others"])).forEach(t => { if(counts[t]!==undefined) counts[t]++; tags.add(t); }); });
-                const keep = counts.land >= criteria.land.min && counts.land <= criteria.land.max && counts.ramp >= criteria.ramp.min && counts.ramp <= criteria.ramp.max && counts.draw >= criteria.draw.min && counts.draw <= criteria.draw.max;
-                logs.push({ cards: hand, tags: Array.from(tags), kept: keep ? 1 : 0 });
+            land: {
+                min: parseInt(document.getElementById('crit-land-min').value),
+                max: parseInt(document.getElementById('crit-land-max').value)
+            },
+            ramp: {
+                min: parseInt(document.getElementById('crit-ramp-min').value),
+                max: parseInt(document.getElementById('crit-ramp-max').value)
+            },
+            draw: {
+                min: parseInt(document.getElementById('crit-draw-min').value),
+                max: parseInt(document.getElementById('crit-draw-max').value)
             }
-            updateUIScores(); btn.disabled = false; btn.innerText = "⚡ +10";
+        };
+    
+        setTimeout(() => {
+            try {
+                const mappedDeck = deck.map(n => nameMap[n] || n);
+    
+                for (let i = 0; i < 10; i++) {
+                    let d = [...mappedDeck];
+    
+                    for (let j = d.length - 1; j > 0; j--) {
+                        const k = Math.floor(Math.random() * (j + 1));
+                        [d[j], d[k]] = [d[k], d[j]];
+                    }
+    
+                    const hand = d.slice(0, 7);
+                    const counts = { land: 0, ramp: 0, draw: 0 };
+                    const tags = new Set();
+    
+                    hand.forEach(c => {
+                        (cardDB[c]?.tags || new Set(["others"])).forEach(t => {
+                            if (counts[t] !== undefined) counts[t]++;
+                            tags.add(t);
+                        });
+                    });
+    
+                    const keep =
+                        counts.land >= criteria.land.min &&
+                        counts.land <= criteria.land.max &&
+                        counts.ramp >= criteria.ramp.min &&
+                        counts.ramp <= criteria.ramp.max &&
+                        counts.draw >= criteria.draw.min &&
+                        counts.draw <= criteria.draw.max;
+    
+                    logs.push({
+                        cards: hand,
+                        tags: Array.from(tags),
+                        kept: keep ? 1 : 0
+                    });
+                }
+    
+                updateUIScores();
+            } catch (err) {
+                console.error("Simulation error:", err);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "⚡ +10";
+            }
         }, 50);
     }
-
+    
     function exportToCSV() {
         let csv = 'kept,tags,cards\n' + logs.map(e => `${e.kept},${e.tags.join('|')},${e.cards.join('|')}`).join('\n');
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'stats.csv'; a.click();
