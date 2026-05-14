@@ -328,36 +328,76 @@
             return;
         }
     
+        const totalHands = logs.length;
         const overallKept = logs.reduce((s, e) => s + e.kept, 0);
-        const overallPct = (overallKept / logs.length) * 100;
+        const overallPct = (overallKept / totalHands) * 100;
     
         document.getElementById('insightsSummary').innerText =
-            `${logs.length.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
+            `${totalHands.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
     
         const cardStats = {};
     
         logs.forEach(e => {
-            e.cards.forEach(c => {
-                if (!cardStats[c]) cardStats[c] = [];
-                cardStats[c].push(e.kept);
+            // Count each card only once per hand
+            const uniqueCards = Array.from(new Set(e.cards));
+    
+            uniqueCards.forEach(c => {
+                if (!cardStats[c]) {
+                    cardStats[c] = {
+                        seen: 0,
+                        keptWith: 0
+                    };
+                }
+    
+                cardStats[c].seen++;
+                cardStats[c].keptWith += e.kept;
             });
         });
     
         ["land", "ramp", "draw", "removal", "others"].forEach(tagKey => {
             const items = Object.entries(cardStats)
-                .filter(([n]) => (cardDB[n]?.tags || new Set(["others"])).has(tagKey))
-                .map(([name, decs]) => {
-                    const score = (decs.reduce((a, b) => a + b, 0) / decs.length) * 100;
-                    const lift = overallPct > 0 ? score / overallPct : 1;
+                .filter(([name]) => (cardDB[name]?.tags || new Set(["others"])).has(tagKey))
+                .map(([name, s]) => {
+                    const seen = s.seen;
+                    const keptWith = s.keptWith;
+    
+                    const notSeen = totalHands - seen;
+                    const keptWithout = overallKept - keptWith;
+    
+                    const pWith = seen > 0
+                        ? keptWith / seen
+                        : 0;
+    
+                    const pWithout = notSeen > 0
+                        ? keptWithout / notSeen
+                        : null;
+    
+                    let lift;
+    
+                    if (pWithout === null) {
+                        lift = null; // Card appeared in every logged hand
+                    } else if (pWithout === 0) {
+                        lift = pWith > 0 ? Infinity : 1;
+                    } else {
+                        lift = pWith / pWithout;
+                    }
     
                     return {
                         name,
-                        score: score.toFixed(1),
-                        seen: decs.length,
+                        seen,
+                        notSeen,
+                        keptWith,
+                        keptWithout,
+                        pWith,
+                        pWithout,
                         lift
                     };
                 })
-                .sort((a, b) => b.lift - a.lift);
+                .sort((a, b) => {
+                    const liftA = a.lift === Infinity ? Number.MAX_VALUE : (a.lift ?? -1);
+                    const liftB = b.lift === Infinity ? Number.MAX_VALUE : (b.lift ?? -1);
+                    return liftB - liftA;
+                });
     
             if (!items.length) return;
     
@@ -371,19 +411,38 @@
             `;
     
             items.forEach(d => {
+                const displayLift =
+                    d.lift === null ? "N/A" :
+                    d.lift === Infinity ? "∞" :
+                    `×${d.lift.toFixed(2)}`;
+    
+                const barLift =
+                    d.lift === null || d.lift === Infinity ? 2 : d.lift;
+    
                 const bar = "█"
-                    .repeat(Math.floor(Math.min(1, d.lift / 2) * 16))
+                    .repeat(Math.floor(Math.min(1, barLift / 2) * 16))
                     .padEnd(16, "░");
     
-                const liftColor = getLiftColor(d.lift);
+                const liftColor =
+                    d.lift === null ? "#888888" :
+                    d.lift === Infinity ? "#4CAF50" :
+                    getLiftColor(d.lift);
+    
+                const withoutText =
+                    d.pWithout === null
+                        ? "without: N/A"
+                        : `without: ${(d.pWithout * 100).toFixed(1)}%`;
     
                 col.innerHTML += `
                     <div class="insight-item">
                         <div style="color:${liftColor}">
-                            ${bar} &times;${d.lift.toFixed(2)}
+                            ${bar} ${displayLift}
                         </div>
                         <div class="insight-item-name">
                             ${d.name} [n=${d.seen}]
+                        </div>
+                        <div style="color:#777">
+                            with: ${(d.pWith * 100).toFixed(1)}% · ${withoutText}
                         </div>
                     </div>
                 `;
