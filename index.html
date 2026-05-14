@@ -103,7 +103,7 @@
         </fieldset>
 
         <fieldset>
-            <legend>KEEP CRITERIA</legend>
+            <legend>KEEP CRITERIA ⚡</legend>
             <div class="crit-row"><span>Lands</span><span>min <input type="number" id="crit-land-min" value="2"></span><span>max <input type="number" id="crit-land-max" value="5"></span></div>
             <div class="crit-row"><span>Ramp</span><span>min <input type="number" id="crit-ramp-min" value="1"></span><span>max <input type="number" id="crit-ramp-max" value="7"></span></div>
             <div class="crit-row"><span>Draw</span><span>min <input type="number" id="crit-draw-min" value="1"></span><span>max <input type="number" id="crit-draw-max" value="7"></span></div>
@@ -284,7 +284,13 @@
         updateUIScores();
         drawHand();
     }
-
+    
+    function getLiftColor(lift) {
+        if (lift < 0.8) return "#F44336";   // red
+        if (lift > 1.2) return "#4CAF50";   // green
+        return "#FFC107";                   // yellow
+    }
+    
     function updateUIScores() {
         document.getElementById('totalCount').innerText = `Total Cards: ${totalCardCount}`;
         const catStats = {};
@@ -299,6 +305,7 @@
                 el.style.color = score >= 50 ? "#4CAF50" : info.color;
             } else { el.innerText = `${info.label} (${cnt}): --`; el.style.color = info.color; }
         }
+        
         rebuildInsights();
     }
 
@@ -325,7 +332,20 @@
 
             if (!items.length) return;
             const col = document.createElement('div'); col.className = 'insight-col';
-            col.innerHTML = `<div class="col-title" style="color:${TAGS[tagKey].color}">${TAGS[tagKey].label.toUpperCase()}</div>`;
+            
+            const liftColor = getLiftColor(d.lift);
+            
+            col.innerHTML += `
+                <div class="insight-item">
+                    <div style="color:${liftColor}">
+                        ${bar} &times;${d.lift.toFixed(2)}
+                    </div>
+                    <div class="insight-item-name">
+                        ${d.name} [n=${d.seen}]
+                    </div>
+                </div>
+            `;
+            
             items.forEach(d => {
                 const bar = "█".repeat(Math.floor(Math.min(1, d.lift/2)*16)).padEnd(16, "░");
                 col.innerHTML += `<div class="insight-item"><div style="color:${d.lift >= 1 ? '#4CAF50':'#F44336'}">${bar} &times;${d.lift.toFixed(2)}</div><div class="insight-item-name">${d.name} [n=${d.seen}]</div></div>`;
@@ -381,6 +401,37 @@
     document.getElementById('btnSim').addEventListener('click', startSimulation);
     document.getElementById('btnExport').addEventListener('click', exportToCSV);
     document.getElementById('fileInput').addEventListener('change', e => { if(e.target.files.length) importFromCSV(e.target.files[0]); });
+    document.addEventListener('keydown', e => {
+        const active = document.activeElement;
+        const isTyping =
+            active &&
+            (
+                active.tagName === 'TEXTAREA' ||
+                active.tagName === 'INPUT' ||
+                active.isContentEditable
+            );
+    
+        // Do not trigger shortcuts while typing in decklist or criteria inputs
+        if (isTyping) return;
+    
+        if (e.key === "ArrowRight") {
+            e.preventDefault();
+            const btn = document.getElementById('btnKeep');
+            if (!btn.disabled) recordDecision(true);
+        }
+    
+        if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            const btn = document.getElementById('btnMull');
+            if (!btn.disabled) recordDecision(false);
+        }
+    
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            e.preventDefault();
+            const btn = document.getElementById('btnSim');
+            if (!btn.disabled) startSimulation();
+        }
+    });
     initScoreLabels();
 </script>
 </body>
