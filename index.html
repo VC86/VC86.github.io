@@ -563,13 +563,13 @@
         if (e.key === "ArrowRight") {
             e.preventDefault();
             const btn = document.getElementById('btnMull');
-            if (!btn.disabled) recordDecision(true);
+            if (!btn.disabled) recordDecision(false);
         }
     
         if (e.key === "ArrowLeft") {
             e.preventDefault();
             const btn = document.getElementById('btnKeep');
-            if (!btn.disabled) recordDecision(false);
+            if (!btn.disabled) recordDecision(true);
         }
     
         if (e.key === "ArrowUp" || e.key === "ArrowDown") {
