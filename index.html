@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,80 +21,325 @@
         }
 
         body {
-            margin: 0; font-family: Arial, sans-serif;
-            background-color: var(--bg-main); color: var(--text-main);
-            display: flex; height: 100vh; overflow: hidden;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .sidebar {
-            width: 320px; background-color: var(--bg-panel); padding: 15px;
-            display: flex; flex-direction: column; gap: 8px;
-            box-sizing: border-box; border-right: 1px solid #333; overflow-y: auto;
+            width: 320px;
+            background-color: var(--bg-panel);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-sizing: border-box;
+            border-right: 1px solid #333;
+            overflow-y: auto;
         }
 
-        .sidebar h3 { color: var(--text-accent); margin: 0 0 5px 0; font-size: 14px; text-align: center; }
-        
+        .sidebar h3 {
+            color: var(--text-accent);
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+
         textarea {
-            width: 100%; height: 200px; background-color: #000; color: #FFF;
-            border: 1px solid #333; padding: 5px; resize: none; box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace; font-size: 12px;
+            width: 100%;
+            height: 200px;
+            background-color: #000;
+            color: #FFF;
+            border: 1px solid #333;
+            padding: 5px;
+            resize: none;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
         }
 
         button {
-            padding: 8px; border: none; cursor: pointer; font-weight: bold; border-radius: 4px;
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
         }
-        button:hover:not(:disabled) { opacity: 0.8; }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .btn-primary { background-color: var(--text-accent); color: #121212; }
-        .btn-secondary { background-color: var(--bg-btn); color: var(--text-accent); font-size: 11px; }
-        
-        fieldset { border: 1px solid #333; padding: 10px; margin-top: 5px; border-radius: 4px; }
-        legend { font-size: 12px; font-weight: bold; padding: 0 5px; color: #FFF; }
-        
-        .stat-row { font-family: 'Courier New', Courier, monospace; font-size: 13px; margin: 4px 0; }
-        #totalCount { font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; color: var(--text-accent); margin-bottom: 8px; }
+        button:hover:not(:disabled) {
+            opacity: 0.8;
+        }
 
-        .crit-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #AAA; }
-        .crit-row input { width: 40px; background: #2e2e2e; color: #FFF; border: 1px solid #555; text-align: center; }
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
 
-        .main-area { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; overflow: hidden; }
+        .btn-primary {
+            background-color: var(--text-accent);
+            color: #121212;
+        }
 
-        .hand-section { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; }
-        .hand-container { display: flex; gap: 10px; justify-content: center; align-items: flex-start; height: 260px; }
-        .card-slot { width: 150px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
-        .card-img { width: 150px; height: 210px; background-color: #2a2a2a; border-radius: 6px; object-fit: cover; }
-        .card-name { font-size: 12px; font-weight: bold; color: var(--text-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-tags { font-size: 10px; font-style: italic; color: var(--text-muted); }
+        .btn-secondary {
+            background-color: var(--bg-btn);
+            color: var(--text-accent);
+            font-size: 11px;
+        }
 
-        .action-buttons { display: flex; justify-content: center; gap: 20px; width: 100%; margin-top: 15px; }
-        .action-buttons button { padding: 12px 20px; font-size: 14px; width: 160px; }
-        .btn-keep { background-color: #4CAF50; color: white; }
-        .btn-mull { background-color: #F44336; color: white; }
-        .btn-sim { background-color: #7B1FA2; color: white; width: 250px !important; }
+        fieldset {
+            border: 1px solid #333;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+        }
+
+        legend {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0 5px;
+            color: #FFF;
+        }
+
+        .stat-row {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            margin: 4px 0;
+        }
+
+        #totalCount {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-accent);
+            margin-bottom: 8px;
+        }
+
+        .crit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #AAA;
+        }
+
+        .crit-row input {
+            width: 40px;
+            background: #2e2e2e;
+            color: #FFF;
+            border: 1px solid #555;
+            text-align: center;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #AAA;
+            gap: 10px;
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            accent-color: var(--text-accent);
+        }
+
+        .slider-row span {
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .main-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .hand-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 350px;
+        }
+
+        .hand-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: flex-start;
+            height: 260px;
+        }
+
+        .card-slot {
+            width: 150px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-img {
+            width: 150px;
+            height: 210px;
+            background-color: #2a2a2a;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .card-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-accent);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-tags {
+            font-size: 10px;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .action-buttons button {
+            padding: 12px 20px;
+            font-size: 14px;
+            width: 160px;
+        }
+
+        .btn-keep {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-mull {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .btn-sim {
+            background-color: #7B1FA2;
+            color: white;
+            width: 250px !important;
+        }
 
         .insights-section {
-            flex-grow: 1; border: 1px solid #333; border-radius: 4px; padding: 10px;
-            display: flex; flex-direction: column; margin-top: 15px; overflow: hidden;
+            flex-grow: 1;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            margin-top: 15px;
+            overflow: hidden;
         }
-        .insights-header { color: var(--text-accent); font-weight: bold; font-size: 14px; margin-bottom: 5px; }
-        .insights-summary { font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #666; margin-bottom: 10px; }
-        
-        .insights-grid { display: flex; gap: 10px; overflow-x: auto; flex-grow: 1; padding-bottom: 10px;}
-        .insight-col { flex: 1; min-width: 240px; background-color: var(--bg-panel); border-radius: 4px; padding: 8px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid #333; }
-        .col-title { font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 4px; }
-        .insight-item { font-family: 'Courier New', Courier, monospace; font-size: 11px; margin-bottom: 8px; line-height: 1.3; }
-        .insight-item-name { color: #CCC; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .insights-header {
+            color: var(--text-accent);
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .insights-summary {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 10px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex-grow: 1;
+            padding-bottom: 10px;
+        }
+
+        .insight-col {
+            min-width: 0;
+            background-color: var(--bg-panel);
+            border-radius: 4px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .col-title {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+        }
+
+        .insight-item {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            margin-bottom: 12px;
+            line-height: 1.35;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 8px;
+        }
+
+        .metric-line {
+            margin-top: 2px;
+        }
+
+        .metric-sub {
+            color: #777;
+            margin-left: 8px;
+        }
+
+        .metric-label {
+            color: #AAA;
+        }
+
+        .insight-item-name {
+            color: #CCC;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="sidebar">
         <h3>DECKLIST</h3>
-        <textarea id="deckInput" placeholder="1x Sol Ring&#10;Arcane Signet&#10;35x Island"></textarea>
+        <div style="font-size: 11px; color: #888; margin-bottom: 5px;">Use Moxfield Plain Text Export!</div>
+        <textarea id="deckInput" placeholder="1 Sol Ring&#10;Arcane Signet&#10;35 Island"></textarea>
         <button class="btn-primary" id="btnAnalyze">ANALYZE DECK</button>
         <button class="btn-secondary" id="btnExport" disabled>EXPORT STATS (CSV)</button>
-        <button class="btn-secondary" id="btnImport" disabled onclick="document.getElementById('fileInput').click()">IMPORT STATS (CSV)</button>
+        <button class="btn-secondary" id="btnImport" disabled
+            onclick="document.getElementById('fileInput').click()">IMPORT STATS (CSV)</button>
         <input type="file" id="fileInput" accept=".csv" style="display: none;">
 
         <fieldset>
@@ -103,10 +349,22 @@
         </fieldset>
 
         <fieldset>
-            <legend>KEEP CRITERIA ⚡</legend>
-            <div class="crit-row"><span>Lands</span><span>min <input type="number" id="crit-land-min" value="2"></span><span>max <input type="number" id="crit-land-max" value="5"></span></div>
-            <div class="crit-row"><span>Ramp</span><span>min <input type="number" id="crit-ramp-min" value="1"></span><span>max <input type="number" id="crit-ramp-max" value="7"></span></div>
-            <div class="crit-row"><span>Draw</span><span>min <input type="number" id="crit-draw-min" value="1"></span><span>max <input type="number" id="crit-draw-max" value="7"></span></div>
+            <legend>KEEP CRITERIA (⚡)</legend>
+            <div class="crit-row"><span>Lands</span><span>min <input type="number" id="crit-land-min"
+                        value="2"></span><span>max <input type="number" id="crit-land-max" value="5"></span></div>
+            <div class="crit-row"><span>Ramp</span><span>min <input type="number" id="crit-ramp-min"
+                        value="1"></span><span>max <input type="number" id="crit-ramp-max" value="7"></span></div>
+            <div class="crit-row"><span>Draw</span><span>min <input type="number" id="crit-draw-min"
+                        value="1"></span><span>max <input type="number" id="crit-draw-max" value="7"></span></div>
+        </fieldset>
+
+        <fieldset>
+            <legend>STATISTICS SMOOTHING</legend>
+            <div class="slider-row">
+                <span style="min-width: 60px;">Strength</span>
+                <input type="range" id="smoothingSlider" min="2" max="10" value="5" style="flex: 1;">
+                <span id="smoothingValue" style="min-width: 25px; text-align: right;">5</span>
+            </div>
         </fieldset>
     </div>
 
@@ -127,458 +385,531 @@
         </div>
     </div>
 
-<script>
-    const TAGS = {
-        land:    { label: "Land",    color: "var(--color-land)",    query: "t:land format:edh" },
-        ramp:    { label: "Ramp",    color: "var(--color-ramp)",    query: "otag:ramp format:edh" },
-        draw:    { label: "Draw",    color: "var(--color-draw)",    query: "otag:draw format:edh" },
-        removal: { label: "Removal", color: "var(--color-removal)", query: "otag:removal format:edh" },
-        others:  { label: "Others",  color: "var(--color-others)",  query: null }
-    };
+    <script>
+        const TAGS = {
+            land: { label: "Land", color: "var(--color-land)", query: "t:land format:edh" },
+            ramp: { label: "Ramp", color: "var(--color-ramp)", query: "otag:ramp format:edh" },
+            draw: { label: "Draw", color: "var(--color-draw)", query: "otag:draw format:edh" },
+            removal: { label: "Removal", color: "var(--color-removal)", query: "otag:removal format:edh" },
+            others: { label: "Others", color: "var(--color-others)", query: null }
+        };
 
-    let logs = [];
-    let cardDB = {};
-    let nameMap = {};
-    let deck = [];
-    let currentHand = [];
-    let categoryCounts = {};
-    let totalCardCount = 0;
+        let logs = [];
+        let cardDB = {};
+        let nameMap = {};
+        let deck = [];
+        let currentHand = [];
+        let categoryCounts = {};
+        let totalCardCount = 0;
 
-    const delay = ms => new Promise(res => setTimeout(res, ms));
+        let BAYESIAN_PRIOR_STRENGTH = 5;
 
-    function resetState() {
-        logs = []; cardDB = {}; nameMap = {}; deck = []; currentHand = []; categoryCounts = {}; totalCardCount = 0;
-        for (const t in TAGS) categoryCounts[t] = 0;
-        document.getElementById('handContainer').innerHTML = "";
-        document.getElementById('insightsGrid').innerHTML = "";
-        document.getElementById('totalCount').innerText = "Total Cards: 0";
-        initScoreLabels();
-    }
+        const delay = ms => new Promise(res => setTimeout(res, ms));
 
-    function initScoreLabels() {
-        const panel = document.getElementById('scoreLabels');
-        panel.innerHTML = "";
-        for (const [key, info] of Object.entries(TAGS)) {
-            const el = document.createElement('div');
-            el.className = 'stat-row'; el.id = `score-${key}`;
-            el.style.color = info.color; el.innerText = `${info.label} (0): --`;
-            panel.appendChild(el);
-        }
-    }
-
-    function parseDecklist(text) {
-        let tempDeck = [];
-        const unique = new Set();
-        let count = 0;
-        text.trim().split('\n').forEach(line => {
-            line = line.trim(); if (!line) return;
-            const match = line.match(/^(\d+)[x\s]+(.+)$/);
-            const qty = match ? parseInt(match[1]) : 1;
-            const name = match ? match[2].trim() : line;
-            for (let i = 0; i < qty; i++) tempDeck.push(name);
-            count += qty;
-            unique.add(name);
-        });
-        deck = tempDeck;
-        totalCardCount = count;
-        return Array.from(unique);
-    }
-
-    async function analyzeDeck() {
-        const text = document.getElementById('deckInput').value;
-        if (!text.trim()) return;
-        
-        resetState();
-        const uniqueNames = parseDecklist(text);
-        if (!uniqueNames.length) return;
-
-        const btnAnalyze = document.getElementById('btnAnalyze');
-        btnAnalyze.disabled = true; btnAnalyze.innerText = "FETCHING...";
-
-        for (let i = 0; i < uniqueNames.length; i += 75) {
-            const batch = uniqueNames.slice(i, i + 75);
-            try {
-                const res = await fetch("https://api.scryfall.com/cards/collection", {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifiers: batch.map(n => ({ name: n })) })
-                });
-                const data = await res.json();
-                (data.data || []).forEach(card => {
-                    const offName = card.name;
-                    const frontName = offName.split(" // ")[0].trim();
-                    const inputName = batch.find(n => 
-                        n.toLowerCase() === offName.toLowerCase() || 
-                        n.toLowerCase() === frontName.toLowerCase() || 
-                        offName.toLowerCase().includes(n.toLowerCase())
-                    ) || offName;
-                    
-                    let imgUrl = card.image_uris?.normal || (card.card_faces?.[0]?.image_uris?.normal || "");
-                    nameMap[inputName] = offName;
-                    if (frontName !== offName && !nameMap[frontName]) nameMap[frontName] = offName;
-                    cardDB[offName] = { name: offName, tags: new Set(), img: imgUrl };
-                });
-            } catch (e) { console.error(e); }
-            await delay(100);
+        function resetState() {
+            logs = []; cardDB = {}; nameMap = {}; deck = []; currentHand = []; categoryCounts = {}; totalCardCount = 0;
+            for (const t in TAGS) categoryCounts[t] = 0;
+            document.getElementById('handContainer').innerHTML = "";
+            document.getElementById('insightsGrid').innerHTML = "";
+            document.getElementById('totalCount').innerText = "Total Cards: 0";
+            initScoreLabels();
         }
 
-        const cardNames = Object.keys(cardDB);
-        for (const [tagKey, info] of Object.entries(TAGS)) {
-            if (!info.query) continue;
-            for (let i = 0; i < cardNames.length; i += 20) {
-                const chunk = cardNames.slice(i, i + 20);
-                const q = `${info.query} (${chunk.map(n => `!"${n}"`).join(" or ")})`;
-                try {
-                    const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        (data.data || []).forEach(card => {
-                            if (cardDB[card.name]) cardDB[card.name].tags.add(tagKey);
-                        });
-                    }
-                } catch (e) {}
-                await delay(100);
+        function initScoreLabels() {
+            const panel = document.getElementById('scoreLabels');
+            panel.innerHTML = "";
+            for (const [key, info] of Object.entries(TAGS)) {
+                const el = document.createElement('div');
+                el.className = 'stat-row'; el.id = `score-${key}`;
+                el.style.color = info.color; el.innerText = `${info.label} (0): N/A`;
+                panel.appendChild(el);
             }
         }
 
-        Object.values(cardDB).forEach(data => { if (data.tags.size === 0) data.tags.add("others"); });
-        deck.forEach(deckCard => {
-            const offName = nameMap[deckCard] || deckCard;
-            (cardDB[offName]?.tags || new Set(["others"])).forEach(t => categoryCounts[t]++);
-        });
-        
-        updateUIScores();
-        
-        btnAnalyze.disabled = false;
-        btnAnalyze.innerText = "ANALYZE DECK";
-        
-        ['btnExport', 'btnImport', 'btnSim'].forEach(id => {
-            document.getElementById(id).disabled = false;
-        });
-        
-        drawHand();
-        
-        // Move focus away from textarea/input so arrow shortcuts work immediately
-        document.body.tabIndex = -1;
-        document.body.focus();
-    }
-
-    function drawHand() {
-        if (!deck.length) return;
-        let shuffled = [...deck];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        function stripNonMainDeck(text) {
+            const skipHeaders = /^\s*(sideboard|commander|companion)\s*:?\s*$/i;
+            const deckHeader = /^\s*deck\s*:?\s*$/i;
+            let skip = false;
+            return text.split('\n').filter(line => {
+                const t = line.trim();
+                if (skipHeaders.test(t)) { skip = true; return false; }
+                if (deckHeader.test(t)) { skip = false; return false; }
+                return !skip;
+            }).join('\n');
         }
-        currentHand = shuffled.slice(0, 7);
-        const container = document.getElementById('handContainer');
-        container.innerHTML = "";
-        currentHand.forEach(name => {
-            const offName = nameMap[name] || name;
-            const data = cardDB[offName] || { img: "", tags: new Set(["others"]) };
-            const slot = document.createElement('div'); slot.className = 'card-slot';
-            slot.innerHTML = `<img class="card-img" src="${data.img}"><div class="card-name">${name}</div><div class="card-tags">${Array.from(data.tags).map(t => TAGS[t]?.label).join(", ")}</div>`;
-            container.appendChild(slot);
-        });
-        document.getElementById('btnKeep').disabled = false;
-        document.getElementById('btnMull').disabled = false;
-    }
 
-    function recordDecision(kept) {
-        const handTags = new Set(), handCards = [];
-        currentHand.forEach(name => {
-            const offName = nameMap[name] || name;
-            handCards.push(offName);
-            (cardDB[offName]?.tags || new Set(["others"])).forEach(t => handTags.add(t));
-        });
-        logs.push({ cards: handCards, tags: Array.from(handTags), kept: kept ? 1 : 0 });
-        updateUIScores();
-        drawHand();
-    }
-    
-    function getLiftColor(lift) {
-        if (lift < 0.5) return "#F44336";   // red
-        if (lift > 1.5) return "#4CAF50";   // green
-        return "#FFC107";                   // yellow
-    }
-    
-    function updateUIScores() {
-        document.getElementById('totalCount').innerText = `Total Cards: ${totalCardCount}`;
-        const catStats = {};
-        logs.forEach(e => e.tags.forEach(t => { if(!catStats[t]) catStats[t]=[]; catStats[t].push(e.kept); }));
-        for (const [tag, info] of Object.entries(TAGS)) {
-            const el = document.getElementById(`score-${tag}`);
-            const cnt = categoryCounts[tag] || 0;
-            if (catStats[tag]) {
-                const sum = catStats[tag].reduce((a,b)=>a+b,0);
-                const score = ((sum / catStats[tag].length) * 100).toFixed(1);
-                el.innerText = `${info.label} (${cnt}): ${score}%`;
-                el.style.color = score >= 50 ? "#4CAF50" : info.color;
-            } else { el.innerText = `${info.label} (${cnt}): --`; el.style.color = info.color; }
-        }
-        
-        rebuildInsights();
-    }
-
-    function rebuildInsights() {
-        const grid = document.getElementById('insightsGrid');
-        grid.innerHTML = "";
-    
-        if (!logs.length) {
-            document.getElementById('insightsSummary').innerText = "Analyze a deck to begin.";
-            return;
-        }
-    
-        const totalHands = logs.length;
-        const overallKept = logs.reduce((s, e) => s + e.kept, 0);
-        const overallPct = (overallKept / totalHands) * 100;
-    
-        document.getElementById('insightsSummary').innerText =
-            `${totalHands.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
-    
-        const cardStats = {};
-    
-        logs.forEach(e => {
-            // Count each card only once per hand
-            const uniqueCards = Array.from(new Set(e.cards));
-    
-            uniqueCards.forEach(c => {
-                if (!cardStats[c]) {
-                    cardStats[c] = {
-                        seen: 0,
-                        keptWith: 0
-                    };
-                }
-    
-                cardStats[c].seen++;
-                cardStats[c].keptWith += e.kept;
+        function parseDecklist(text) {
+            text = stripNonMainDeck(text);
+            let tempDeck = [];
+            const unique = new Set();
+            let count = 0;
+            text.trim().split('\n').forEach(line => {
+                line = line.trim(); if (!line) return;
+                const match = line.match(/^(\d+)[x\s]+(.+)$/);
+                const qty = match ? parseInt(match[1]) : 1;
+                const name = match ? match[2].trim() : line;
+                for (let i = 0; i < qty; i++) tempDeck.push(name);
+                count += qty;
+                unique.add(name);
             });
-        });
-    
-        ["land", "ramp", "draw", "removal", "others"].forEach(tagKey => {
-            const items = Object.entries(cardStats)
-                .filter(([name]) => (cardDB[name]?.tags || new Set(["others"])).has(tagKey))
-                .map(([name, s]) => {
-                    const seen = s.seen;
-                    const keptWith = s.keptWith;
-    
-                    const notSeen = totalHands - seen;
-                    const keptWithout = overallKept - keptWith;
-    
-                    const pWith = seen > 0
-                        ? keptWith / seen
-                        : 0;
-    
-                    const pWithout = notSeen > 0
-                        ? keptWithout / notSeen
-                        : null;
-    
-                    let lift;
-    
-                    if (pWithout === null) {
-                        lift = null; // Card appeared in every logged hand
-                    } else if (pWithout === 0) {
-                        lift = pWith > 0 ? Infinity : 1;
-                    } else {
-                        lift = pWith / pWithout;
-                    }
-    
-                    return {
-                        name,
-                        seen,
-                        notSeen,
-                        keptWith,
-                        keptWithout,
-                        pWith,
-                        pWithout,
-                        lift
-                    };
-                })
-                .sort((a, b) => {
-                    const liftA = a.lift === Infinity ? Number.MAX_VALUE : (a.lift ?? -1);
-                    const liftB = b.lift === Infinity ? Number.MAX_VALUE : (b.lift ?? -1);
-                    return liftB - liftA;
-                });
-    
-            if (!items.length) return;
-    
-            const col = document.createElement('div');
-            col.className = 'insight-col';
-    
-            col.innerHTML = `
+            deck = tempDeck;
+            totalCardCount = count;
+            return Array.from(unique);
+        }
+
+        async function analyzeDeck() {
+            const text = document.getElementById('deckInput').value;
+            if (!text.trim()) return;
+
+            resetState();
+            const uniqueNames = parseDecklist(text);
+            if (!uniqueNames.length) return;
+
+            const ADMISSIBLE_COUNTS = [60, 98, 99];
+            if (!ADMISSIBLE_COUNTS.includes(totalCardCount)) {
+                alert(`Invalid deck size: ${totalCardCount} cards.\nAdmissible sizes are 60, 98, or 99.`);
+                return;
+            }
+
+            const btnAnalyze = document.getElementById('btnAnalyze');
+            btnAnalyze.disabled = true; btnAnalyze.innerText = "FETCHING...";
+
+            for (let i = 0; i < uniqueNames.length; i += 75) {
+                const batch = uniqueNames.slice(i, i + 75);
+                try {
+                    const res = await fetch("https://api.scryfall.com/cards/collection", {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifiers: batch.map(n => ({ name: n })) })
+                    });
+                    const data = await res.json();
+                    (data.data || []).forEach(card => {
+                        const offName = card.name;
+                        const frontName = offName.split(" // ")[0].trim();
+                        const inputName = batch.find(n =>
+                            n.toLowerCase() === offName.toLowerCase() ||
+                            n.toLowerCase() === frontName.toLowerCase() ||
+                            offName.toLowerCase().includes(n.toLowerCase())
+                        ) || offName;
+
+                        let imgUrl = card.image_uris?.normal || (card.card_faces?.[0]?.image_uris?.normal || "");
+                        nameMap[inputName] = offName;
+                        if (frontName !== offName && !nameMap[frontName]) nameMap[frontName] = offName;
+                        cardDB[offName] = { name: offName, tags: new Set(), img: imgUrl };
+                    });
+                } catch (e) { console.error(e); }
+                await delay(100);
+            }
+
+            const cardNames = Object.keys(cardDB);
+            for (const [tagKey, info] of Object.entries(TAGS)) {
+                if (!info.query) continue;
+                for (let i = 0; i < cardNames.length; i += 20) {
+                    const chunk = cardNames.slice(i, i + 20);
+                    const q = `${info.query} (${chunk.map(n => `!"${n}"`).join(" or ")})`;
+                    try {
+                        const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            (data.data || []).forEach(card => {
+                                if (cardDB[card.name]) cardDB[card.name].tags.add(tagKey);
+                            });
+                        }
+                    } catch (e) { }
+                    await delay(100);
+                }
+            }
+
+            Object.values(cardDB).forEach(data => { if (data.tags.size === 0) data.tags.add("others"); });
+            deck.forEach(deckCard => {
+                const offName = nameMap[deckCard] || deckCard;
+                (cardDB[offName]?.tags || new Set(["others"])).forEach(t => categoryCounts[t]++);
+            });
+
+            updateUIScores();
+
+            btnAnalyze.disabled = false;
+            btnAnalyze.innerText = "ANALYZE DECK";
+
+            ['btnExport', 'btnImport', 'btnSim'].forEach(id => {
+                document.getElementById(id).disabled = false;
+            });
+
+            drawHand();
+
+            // Move focus away from textarea/input so arrow shortcuts work immediately
+            document.body.tabIndex = -1;
+            document.body.focus();
+        }
+
+        function drawHand() {
+            if (!deck.length) return;
+            let shuffled = [...deck];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            currentHand = shuffled.slice(0, 7);
+            const container = document.getElementById('handContainer');
+            container.innerHTML = "";
+            currentHand.forEach(name => {
+                const offName = nameMap[name] || name;
+                const data = cardDB[offName] || { img: "", tags: new Set(["others"]) };
+                const slot = document.createElement('div'); slot.className = 'card-slot';
+                slot.innerHTML = `<img class="card-img" src="${data.img}"><div class="card-name">${name}</div><div class="card-tags">${Array.from(data.tags).map(t => TAGS[t]?.label).join(", ")}</div>`;
+                container.appendChild(slot);
+            });
+            document.getElementById('btnKeep').disabled = false;
+            document.getElementById('btnMull').disabled = false;
+        }
+
+        function recordDecision(kept) {
+            const handTags = new Set(), handCards = [];
+            currentHand.forEach(name => {
+                const offName = nameMap[name] || name;
+                handCards.push(offName);
+                (cardDB[offName]?.tags || new Set(["others"])).forEach(t => handTags.add(t));
+            });
+            logs.push({ cards: handCards, tags: Array.from(handTags), kept: kept ? 1 : 0 });
+            updateUIScores();
+            drawHand();
+        }
+
+        function getLiftColor(lift) {
+            if (lift < 0.5) return "#F44336";   // red
+            if (lift > 1.5) return "#4CAF50";   // green
+            return "#FFC107";                   // yellow
+        }
+
+        function categoryHasAllValidLifts(tag) {
+            if (!logs.length) return false;
+
+            const enrichedLogs = logs.map(e => ({
+                ...e,
+                cardSet: new Set(e.cards)
+            }));
+
+            const cardNamesSeen = new Set();
+            enrichedLogs.forEach(e => {
+                e.cardSet.forEach(c => cardNamesSeen.add(c));
+            });
+
+            const cardsInTag = Array.from(cardNamesSeen).filter(name =>
+                (cardDB[name]?.tags || new Set(["others"])).has(tag)
+            );
+
+            for (const cardName of cardsInTag) {
+                const { lift } = computeLiftForLogs(enrichedLogs, cardName);
+                if (lift === null || lift === Infinity) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function updateUIScores() {
+            document.getElementById('totalCount').innerText = `Total Cards: ${totalCardCount}`;
+            const catStats = {};
+            logs.forEach(e => e.tags.forEach(t => { if (!catStats[t]) catStats[t] = []; catStats[t].push(e.kept); }));
+            for (const [tag, info] of Object.entries(TAGS)) {
+                const el = document.getElementById(`score-${tag}`);
+                const cnt = categoryCounts[tag] || 0;
+                if (catStats[tag] && categoryHasAllValidLifts(tag)) {
+                    const sum = catStats[tag].reduce((a, b) => a + b, 0);
+                    const score = ((sum / catStats[tag].length) * 100).toFixed(1);
+                    el.innerText = `${info.label} (${cnt}): ${score}%`;
+                    el.style.color = score >= 50 ? "#4CAF50" : info.color;
+                } else {
+                    el.innerText = `${info.label} (${cnt}): N/A`;
+                    el.style.color = info.color;
+                }
+            }
+
+            rebuildInsights();
+        }
+
+
+
+        function computeLiftForLogs(logList, cardName, overallKeepRate, priorStrength) {
+            let seen = 0;
+            let keptWith = 0;
+            let notSeen = 0;
+            let keptWithout = 0;
+
+            logList.forEach(e => {
+                const hasCard = e.cardSet.has(cardName);
+
+                if (hasCard) {
+                    seen++;
+                    keptWith += e.kept;
+                } else {
+                    notSeen++;
+                    keptWithout += e.kept;
+                }
+            });
+
+            // Bayesian Beta-Binomial prior: deck baseline
+            const alpha = priorStrength * overallKeepRate;
+            const beta = priorStrength * (1 - overallKeepRate);
+
+            // Posterior means (regularized estimates)
+            const pWith = seen > 0 ? (alpha + keptWith) / (alpha + beta + seen) : null;
+            const pWithout = notSeen > 0 ? (alpha + keptWithout) / (alpha + beta + notSeen) : null;
+
+            let lift;
+
+            if (pWith === null || pWithout === null) {
+                lift = null;
+            } else if (pWithout === 0) {
+                lift = pWith > 0 ? Infinity : 1;
+            } else {
+                lift = pWith / pWithout;
+            }
+
+            return {
+                seen,
+                notSeen,
+                keptWith,
+                keptWithout,
+                pWith,
+                pWithout,
+                lift
+            };
+        }
+
+        function formatLift(lift) {
+            if (lift === null || lift === Infinity) return "N/A";
+            return `×${lift.toFixed(2)}`;
+        }
+
+        function formatPct(value) {
+            if (value === null) return "N/A";
+            return `${(value * 100).toFixed(1)}%`;
+        }
+
+        function getLiftBar(lift) {
+            const barLift = lift === null || lift === Infinity ? 0 : lift;
+
+            return "█"
+                .repeat(Math.floor(Math.min(1, barLift / 2) * 16))
+                .padEnd(16, "░");
+        }
+
+        function getDisplayLiftColor(lift) {
+            if (lift === null || lift === Infinity) return "#888888";
+            return getLiftColor(lift);
+        }
+
+        function rebuildInsights() {
+            const grid = document.getElementById('insightsGrid');
+            grid.innerHTML = "";
+
+            if (!logs.length) {
+                document.getElementById('insightsSummary').innerText = "Analyze a deck to begin.";
+                return;
+            }
+
+            const totalHands = logs.length;
+            const overallKept = logs.reduce((s, e) => s + e.kept, 0);
+            const overallKeepRate = overallKept / totalHands;
+            const overallPct = overallKeepRate * 100;
+
+            document.getElementById('insightsSummary').innerText =
+                `${totalHands.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
+
+            const enrichedLogs = logs.map(e => ({
+                ...e,
+                cardSet: new Set(e.cards)
+            }));
+
+            const cardNamesSeen = new Set();
+
+            enrichedLogs.forEach(e => {
+                e.cardSet.forEach(c => cardNamesSeen.add(c));
+            });
+
+            ["land", "ramp", "draw", "removal", "others"].forEach(tagKey => {
+                const items = Array.from(cardNamesSeen)
+                    .filter(name => (cardDB[name]?.tags || new Set(["others"])).has(tagKey))
+                    .map(name => {
+                        const { seen, pWith, pWithout, lift } = computeLiftForLogs(enrichedLogs, name, overallKeepRate, BAYESIAN_PRIOR_STRENGTH);
+                        return { name, seen, pWith, pWithout, lift };
+                    })
+                    .sort((a, b) => {
+                        const liftA = a.lift === Infinity ? Number.MAX_VALUE : (a.lift ?? -1);
+                        const liftB = b.lift === Infinity ? Number.MAX_VALUE : (b.lift ?? -1);
+                        return liftB - liftA;
+                    });
+
+                if (!items.length) return;
+
+                const col = document.createElement('div');
+                col.className = 'insight-col';
+
+                col.innerHTML = `
                 <div class="col-title" style="color:${TAGS[tagKey].color}">
                     ${TAGS[tagKey].label.toUpperCase()}
                 </div>
             `;
-    
-            items.forEach(d => {
-                const displayLift =
-                    d.lift === null ? "N/A" :
-                    d.lift === Infinity ? "∞" :
-                    `×${d.lift.toFixed(2)}`;
-    
-                const barLift =
-                    d.lift === null || d.lift === Infinity ? 2 : d.lift;
-    
-                const bar = "█"
-                    .repeat(Math.floor(Math.min(1, barLift / 2) * 16))
-                    .padEnd(16, "░");
-    
-                const liftColor =
-                    d.lift === null ? "#888888" :
-                    d.lift === Infinity ? "#4CAF50" :
-                    getLiftColor(d.lift);
-    
-                const withoutText =
-                    d.pWithout === null
-                        ? "without: N/A"
-                        : `without: ${(d.pWithout * 100).toFixed(1)}%`;
-    
-                col.innerHTML += `
+
+                items.forEach(d => {
+                    const liftColor = getDisplayLiftColor(d.lift);
+                    const bar = getLiftBar(d.lift);
+                    const displayLift = formatLift(d.lift);
+                    const withoutText = d.pWithout === null ? "N/A" : formatPct(d.pWithout);
+
+                    col.innerHTML += `
                     <div class="insight-item">
-                        <div style="color:${liftColor}">
+                        <div class="metric-line" style="color:${liftColor}">
                             ${bar} ${displayLift}
                         </div>
                         <div class="insight-item-name">
                             ${d.name} [n=${d.seen}]
                         </div>
-                        <div style="color:#777">
-                            with: ${(d.pWith * 100).toFixed(1)}% · ${withoutText}
+                        <div class="metric-sub">
+                            with: ${formatPct(d.pWith)} · without: ${withoutText}
                         </div>
                     </div>
                 `;
-            });
-    
-            grid.appendChild(col);
-        });
-    }
-    
-    function startSimulation() {
-        const btn = document.getElementById('btnSim');
-    
-        if (btn.disabled || !deck.length) return;
-    
-        btn.disabled = true;
-        btn.innerText = "SIMULATING...";
-    
-        const criteria = {
-            land: {
-                min: parseInt(document.getElementById('crit-land-min').value),
-                max: parseInt(document.getElementById('crit-land-max').value)
-            },
-            ramp: {
-                min: parseInt(document.getElementById('crit-ramp-min').value),
-                max: parseInt(document.getElementById('crit-ramp-max').value)
-            },
-            draw: {
-                min: parseInt(document.getElementById('crit-draw-min').value),
-                max: parseInt(document.getElementById('crit-draw-max').value)
-            }
-        };
-    
-        setTimeout(() => {
-            try {
-                const mappedDeck = deck.map(n => nameMap[n] || n);
-    
-                for (let i = 0; i < 10; i++) {
-                    let d = [...mappedDeck];
-    
-                    for (let j = d.length - 1; j > 0; j--) {
-                        const k = Math.floor(Math.random() * (j + 1));
-                        [d[j], d[k]] = [d[k], d[j]];
-                    }
-    
-                    const hand = d.slice(0, 7);
-                    const counts = { land: 0, ramp: 0, draw: 0 };
-                    const tags = new Set();
-    
-                    hand.forEach(c => {
-                        (cardDB[c]?.tags || new Set(["others"])).forEach(t => {
-                            if (counts[t] !== undefined) counts[t]++;
-                            tags.add(t);
-                        });
-                    });
-    
-                    const keep =
-                        counts.land >= criteria.land.min &&
-                        counts.land <= criteria.land.max &&
-                        counts.ramp >= criteria.ramp.min &&
-                        counts.ramp <= criteria.ramp.max &&
-                        counts.draw >= criteria.draw.min &&
-                        counts.draw <= criteria.draw.max;
-    
-                    logs.push({
-                        cards: hand,
-                        tags: Array.from(tags),
-                        kept: keep ? 1 : 0
-                    });
-                }
-    
-                updateUIScores();
-            } catch (err) {
-                console.error("Simulation error:", err);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "⚡ +10";
-            }
-        }, 50);
-    }
-    
-    function exportToCSV() {
-        let csv = 'kept,tags,cards\n' + logs.map(e => `${e.kept},${e.tags.join('|')},${e.cards.join('|')}`).join('\n');
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'stats.csv'; a.click();
-    }
-    
-    function importFromCSV(file) {
-        const reader = new FileReader();
-        reader.onload = e => {
-            const lines = e.target.result.trim().split('\n');
-            logs = lines.slice(1).map(l => {
-                const [k, t, c] = l.split(',');
-                return { kept: parseInt(k), tags: t?t.split('|'):[], cards: c?c.split('|'):[] };
-            });
-            updateUIScores(); if(deck.length) drawHand();
-        };
-        reader.readAsText(file);
-    }
+                });
 
-    document.getElementById('btnAnalyze').addEventListener('click', analyzeDeck);
-    document.getElementById('btnKeep').addEventListener('click', () => recordDecision(true));
-    document.getElementById('btnMull').addEventListener('click', () => recordDecision(false));
-    document.getElementById('btnSim').addEventListener('click', startSimulation);
-    document.getElementById('btnExport').addEventListener('click', exportToCSV);
-    document.getElementById('fileInput').addEventListener('change', e => { if(e.target.files.length) importFromCSV(e.target.files[0]); });
-    document.addEventListener('keydown', e => {
-        const active = document.activeElement;
-        const isTyping =
-            active &&
-            (
-                active.tagName === 'TEXTAREA' ||
-                active.tagName === 'INPUT' ||
-                active.isContentEditable
-            );
-    
-        // Do not trigger shortcuts while typing in decklist or criteria inputs
-        if (isTyping) return;
-    
-        if (e.key === "ArrowRight") {
-            e.preventDefault();
-            const btn = document.getElementById('btnMull');
-            if (!btn.disabled) recordDecision(false);
+                grid.appendChild(col);
+            });
         }
-    
-        if (e.key === "ArrowLeft") {
-            e.preventDefault();
-            const btn = document.getElementById('btnKeep');
-            if (!btn.disabled) recordDecision(true);
-        }
-    
-        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-            e.preventDefault();
+
+        function startSimulation() {
             const btn = document.getElementById('btnSim');
-            if (!btn.disabled) startSimulation();
+
+            if (btn.disabled || !deck.length) return;
+
+            btn.disabled = true;
+            btn.innerText = "SIMULATING...";
+
+            const criteria = {
+                land: {
+                    min: parseInt(document.getElementById('crit-land-min').value),
+                    max: parseInt(document.getElementById('crit-land-max').value)
+                },
+                ramp: {
+                    min: parseInt(document.getElementById('crit-ramp-min').value),
+                    max: parseInt(document.getElementById('crit-ramp-max').value)
+                },
+                draw: {
+                    min: parseInt(document.getElementById('crit-draw-min').value),
+                    max: parseInt(document.getElementById('crit-draw-max').value)
+                }
+            };
+
+            setTimeout(() => {
+                try {
+                    const mappedDeck = deck.map(n => nameMap[n] || n);
+
+                    for (let i = 0; i < 10; i++) {
+                        let d = [...mappedDeck];
+
+                        for (let j = d.length - 1; j > 0; j--) {
+                            const k = Math.floor(Math.random() * (j + 1));
+                            [d[j], d[k]] = [d[k], d[j]];
+                        }
+
+                        const hand = d.slice(0, 7);
+                        const counts = { land: 0, ramp: 0, draw: 0 };
+                        const tags = new Set();
+
+                        hand.forEach(c => {
+                            (cardDB[c]?.tags || new Set(["others"])).forEach(t => {
+                                if (counts[t] !== undefined) counts[t]++;
+                                tags.add(t);
+                            });
+                        });
+
+                        const keep =
+                            counts.land >= criteria.land.min &&
+                            counts.land <= criteria.land.max &&
+                            counts.ramp >= criteria.ramp.min &&
+                            counts.ramp <= criteria.ramp.max &&
+                            counts.draw >= criteria.draw.min &&
+                            counts.draw <= criteria.draw.max;
+
+                        logs.push({
+                            cards: hand,
+                            tags: Array.from(tags),
+                            kept: keep ? 1 : 0
+                        });
+                    }
+
+                    updateUIScores();
+                } catch (err) {
+                    console.error("Simulation error:", err);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = "⚡ +10";
+                }
+            }, 50);
         }
-    });
-    initScoreLabels();
-</script>
+
+        function exportToCSV() {
+            let csv = 'kept,tags,cards\n' + logs.map(e => `${e.kept},${e.tags.join('|')},${e.cards.join('|')}`).join('\n');
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'stats.csv'; a.click();
+        }
+
+        function importFromCSV(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const lines = e.target.result.trim().split('\n');
+                logs = lines.slice(1).map(l => {
+                    const [k, t, c] = l.split(',');
+                    return { kept: parseInt(k), tags: t ? t.split('|') : [], cards: c ? c.split('|') : [] };
+                });
+                updateUIScores(); if (deck.length) drawHand();
+            };
+            reader.readAsText(file);
+        }
+
+        document.getElementById('btnAnalyze').addEventListener('click', analyzeDeck);
+        document.getElementById('btnKeep').addEventListener('click', () => recordDecision(true));
+        document.getElementById('btnMull').addEventListener('click', () => recordDecision(false));
+        document.getElementById('btnSim').addEventListener('click', startSimulation);
+        document.getElementById('btnExport').addEventListener('click', exportToCSV);
+        document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files.length) importFromCSV(e.target.files[0]); });
+        document.getElementById('smoothingSlider').addEventListener('input', e => {
+            BAYESIAN_PRIOR_STRENGTH = parseInt(e.target.value);
+            document.getElementById('smoothingValue').innerText = e.target.value;
+            if (logs.length) rebuildInsights();
+        });
+        document.addEventListener('keydown', e => {
+            const active = document.activeElement;
+            const isTyping =
+                active &&
+                (
+                    active.tagName === 'TEXTAREA' ||
+                    active.tagName === 'INPUT' ||
+                    active.isContentEditable
+                );
+
+            // Do not trigger shortcuts while typing in decklist or criteria inputs
+            if (isTyping) return;
+
+            if (e.key === "ArrowRight") {
+                e.preventDefault();
+                const btn = document.getElementById('btnMull');
+                if (!btn.disabled) recordDecision(false);
+            }
+
+            if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                const btn = document.getElementById('btnKeep');
+                if (!btn.disabled) recordDecision(true);
+            }
+
+            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                e.preventDefault();
+                const btn = document.getElementById('btnSim');
+                if (!btn.disabled) startSimulation();
+            }
+        });
+        initScoreLabels();
+    </script>
 </body>
+
 </html>
