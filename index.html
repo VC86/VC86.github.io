@@ -115,7 +115,7 @@
             font-size: 13px;
             font-weight: bold;
             color: var(--text-accent);
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .crit-row {
@@ -359,11 +359,15 @@
         </fieldset>
 
         <fieldset>
-            <legend>STATISTICS SMOOTHING</legend>
+            <legend>OPTIONS</legend>
             <div class="slider-row">
-                <span style="min-width: 60px;">Strength</span>
+                <span style="min-width: 60px;">Smoothing</span>
                 <input type="range" id="smoothingSlider" min="1" max="32" value="5" style="flex: 1;">
                 <span id="smoothingValue" style="min-width: 25px; text-align: right;">5</span>
+            </div>
+            <div class="crit-row" style="justify-content: flex-start; gap: 8px; margin-bottom: 0;">
+                <label for="chkPrioritizePlausible" style="cursor: pointer; color: #AAA; font-family: 'Courier New', Courier, monospace; font-size: 12px;">Smart Sampling</label>
+                <input type="checkbox" id="chkPrioritizePlausible" style="width: auto; accent-color: var(--text-accent);">
             </div>
         </fieldset>
     </div>
@@ -401,6 +405,7 @@
         let currentHand = [];
         let categoryCounts = {};
         let totalCardCount = 0;
+        let regressionWeights = null;
 
         let BAYESIAN_PRIOR_STRENGTH = 5;
 
@@ -408,6 +413,7 @@
 
         function resetState() {
             logs = []; cardDB = {}; nameMap = {}; deck = []; currentHand = []; categoryCounts = {}; totalCardCount = 0;
+            regressionWeights = null;
             for (const t in TAGS) categoryCounts[t] = 0;
             document.getElementById('handContainer').innerHTML = "";
             document.getElementById('insightsGrid').innerHTML = "";
@@ -492,9 +498,11 @@
                         ) || offName;
 
                         let imgUrl = card.image_uris?.normal || (card.card_faces?.[0]?.image_uris?.normal || "");
+                        let manaValue = typeof card.cmc === 'number' ? card.cmc : 0;
+
                         nameMap[inputName] = offName;
                         if (frontName !== offName && !nameMap[frontName]) nameMap[frontName] = offName;
-                        cardDB[offName] = { name: offName, tags: new Set(), img: imgUrl };
+                        cardDB[offName] = { name: offName, tags: new Set(), img: imgUrl, cmc: manaValue };
                     });
                 } catch (e) { console.error(e); }
                 await delay(100);
@@ -536,24 +544,83 @@
 
             drawHand();
 
-            // Move focus away from textarea/input so arrow shortcuts work immediately
             document.body.tabIndex = -1;
             document.body.focus();
         }
 
-        function drawHand() {
-            if (!deck.length) return;
+        function generateRandomHand() {
             let shuffled = [...deck];
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
-            currentHand = shuffled.slice(0, 7);
+            return shuffled.slice(0, 7);
+        }
+
+        function getHandFeatures(handCards) {
+            const counts = { land: 0, ramp: 0, draw: 0 };
+            let totalCmc = 0;
+            handCards.forEach(name => {
+                const offName = nameMap[name] || name;
+                const card = cardDB[offName];
+                if (card) {
+                    totalCmc += card.cmc || 0;
+                    card.tags.forEach(t => {
+                        if (counts[t] !== undefined) counts[t]++;
+                    });
+                }
+            });
+            const nLand = counts.land / 7;
+            const nRamp = counts.ramp / 7;
+            const nDraw = counts.draw / 7;
+            const nCmc = totalCmc / 35; // Standard scaling factor for opening hand weight
+            return [
+                1,
+                nLand, nLand * nLand,
+                nRamp, nRamp * nRamp,
+                nDraw, nDraw * nDraw,
+                nCmc, nCmc * nCmc
+            ];
+        }
+
+        function predictProbability(features, weights) {
+            let z = 0;
+            for (let j = 0; j < weights.length; j++) {
+                z += weights[j] * features[j];
+            }
+            z = Math.max(-15, Math.min(15, z));
+            return 1 / (1 + Math.exp(-z));
+        }
+
+        function drawHand() {
+            if (!deck.length) return;
+
+            const prioritize = document.getElementById('chkPrioritizePlausible').checked;
+
+            if (prioritize && regressionWeights && logs.length >= 10) {
+                let bestHand = null;
+                let closestDistance = Infinity;
+
+                for (let i = 0; i < 20; i++) {
+                    const candidate = generateRandomHand();
+                    const features = getHandFeatures(candidate);
+                    const p = predictProbability(features, regressionWeights);
+                    const dist = Math.abs(p - 0.5);
+                    if (dist < closestDistance) {
+                        closestDistance = dist;
+                        bestHand = candidate;
+                    }
+                }
+                currentHand = bestHand;
+            } else {
+                currentHand = generateRandomHand();
+            }
+
             const container = document.getElementById('handContainer');
             container.innerHTML = "";
             currentHand.forEach(name => {
                 const offName = nameMap[name] || name;
-                const data = cardDB[offName] || { img: "", tags: new Set(["others"]) };
+                const data = cardDB[offName] || { img: "", tags: new Set(["others"]), cmc: 0 };
                 const slot = document.createElement('div'); slot.className = 'card-slot';
                 slot.innerHTML = `<img class="card-img" src="${data.img}"><div class="card-name">${name}</div><div class="card-tags">${Array.from(data.tags).map(t => TAGS[t]?.label).join(", ")}</div>`;
                 container.appendChild(slot);
@@ -575,9 +642,9 @@
         }
 
         function getLiftColor(lift) {
-            if (lift < 0.5) return "#F44336";   // red
-            if (lift > 1.5) return "#4CAF50";   // green
-            return "#FFC107";                   // yellow
+            if (lift < 0.5) return "#F44336";
+            if (lift > 1.5) return "#4CAF50";
+            return "#FFC107";
         }
 
         function categoryHasAllValidLifts(tag) {
@@ -607,6 +674,65 @@
             return true;
         }
 
+        function trainRegressionModel() {
+            if (logs.length < 10) {
+                regressionWeights = null;
+                return;
+            }
+
+            const X = [];
+            const y = [];
+
+            logs.forEach(log => {
+                const counts = { land: 0, ramp: 0, draw: 0 };
+                let totalCmc = 0;
+                log.cards.forEach(c => {
+                    const card = cardDB[c];
+                    if (card) {
+                        totalCmc += card.cmc || 0;
+                        card.tags.forEach(t => {
+                            if (counts[t] !== undefined) counts[t]++;
+                        });
+                    }
+                });
+                const nLand = counts.land / 7;
+                const nRamp = counts.ramp / 7;
+                const nDraw = counts.draw / 7;
+                const nCmc = totalCmc / 35;
+                X.push([
+                    1,
+                    nLand, nLand * nLand,
+                    nRamp, nRamp * nRamp,
+                    nDraw, nDraw * nDraw,
+                    nCmc, nCmc * nCmc
+                ]);
+                y.push(log.kept);
+            });
+
+            let weights = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+            const learningRate = 0.1;
+            const epochs = 1200;
+            const lambda = 0.1;
+
+            for (let epoch = 0; epoch < epochs; epoch++) {
+                let gradients = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+                for (let i = 0; i < X.length; i++) {
+                    const xi = X[i];
+                    const yi = y[i];
+                    const p = predictProbability(xi, weights);
+                    const error = p - yi;
+                    for (let j = 0; j < weights.length; j++) {
+                        gradients[j] += error * xi[j];
+                    }
+                }
+                for (let j = 0; j < weights.length; j++) {
+                    const regularization = j === 0 ? 0 : lambda * weights[j];
+                    weights[j] -= (learningRate / X.length) * (gradients[j] + regularization);
+                }
+            }
+            regressionWeights = weights;
+        }
+
         function updateUIScores() {
             document.getElementById('totalCount').innerText = `Total Cards: ${totalCardCount}`;
             const catStats = {};
@@ -625,10 +751,9 @@
                 }
             }
 
+            trainRegressionModel();
             rebuildInsights();
         }
-
-
 
         function computeLiftForLogs(logList, cardName, overallKeepRate, priorStrength) {
             let seen = 0;
@@ -648,11 +773,9 @@
                 }
             });
 
-            // Bayesian Beta-Binomial prior: deck baseline
             const alpha = priorStrength * overallKeepRate;
             const beta = priorStrength * (1 - overallKeepRate);
 
-            // Posterior means (regularized estimates)
             const pWith = seen > 0 ? (alpha + keptWith) / (alpha + beta + seen) : null;
             const pWithout = notSeen > 0 ? (alpha + keptWithout) / (alpha + beta + notSeen) : null;
 
@@ -887,7 +1010,6 @@
                     active.isContentEditable
                 );
 
-            // Do not trigger shortcuts while typing in decklist or criteria inputs
             if (isTyping) return;
 
             if (e.key === "ArrowRight") {
