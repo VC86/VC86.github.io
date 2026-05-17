@@ -179,7 +179,9 @@
             gap: 10px;
             justify-content: center;
             align-items: flex-start;
-            height: 260px;
+            flex-wrap: wrap;
+            height: auto;
+            max-width: 100%;
         }
 
         .card-slot {
@@ -188,6 +190,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            flex-shrink: 0;
         }
 
         .card-img {
@@ -219,6 +222,7 @@
             gap: 20px;
             width: 100%;
             margin-top: 15px;
+            flex-wrap: wrap;
         }
 
         .action-buttons button {
@@ -326,6 +330,329 @@
             overflow: visible;
             text-overflow: clip;
             margin-bottom: 4px;
+        }
+
+        /* === TABLET & MOBILE RESPONSIVE DESIGN === */
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #333;
+                max-height: 50vh;
+                padding: 12px;
+            }
+
+            .sidebar h3 {
+                font-size: 13px;
+                margin-bottom: 3px;
+            }
+
+            textarea {
+                height: 120px;
+                font-size: 11px;
+            }
+
+            .main-area {
+                flex-grow: 1;
+                height: auto;
+                padding: 12px;
+                overflow-y: auto;
+            }
+
+            .hand-section {
+                min-height: auto;
+            }
+
+            .hand-container {
+                gap: 8px;
+            }
+
+            .card-slot {
+                width: 130px;
+            }
+
+            .card-img {
+                width: 130px;
+                height: 182px;
+            }
+
+            .card-name {
+                font-size: 11px;
+            }
+
+            .card-tags {
+                font-size: 9px;
+            }
+
+            .action-buttons {
+                gap: 10px;
+                margin-top: 12px;
+            }
+
+            .action-buttons button {
+                padding: 10px 16px;
+                font-size: 12px;
+                width: 120px;
+            }
+
+            .btn-sim {
+                width: 200px !important;
+            }
+
+            .insights-section {
+                margin-top: 12px;
+                padding: 8px;
+            }
+
+            .insights-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 8px;
+            }
+
+            .insight-col {
+                padding: 6px;
+            }
+
+            .col-title {
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
+
+            .insight-item {
+                font-size: 10px;
+                margin-bottom: 10px;
+                padding-bottom: 6px;
+            }
+
+            fieldset {
+                padding: 8px;
+                margin-top: 4px;
+            }
+
+            legend {
+                font-size: 11px;
+            }
+
+            .stat-row {
+                font-size: 12px;
+                margin: 3px 0;
+            }
+
+            #totalCount {
+                font-size: 12px;
+                margin-bottom: 3px;
+            }
+
+            .crit-row {
+                font-size: 11px;
+                margin-bottom: 5px;
+            }
+
+            .crit-row input {
+                width: 35px;
+                font-size: 11px;
+            }
+
+            .slider-row {
+                font-size: 11px;
+                margin-bottom: 6px;
+                gap: 8px;
+            }
+
+            .slider-row span {
+                min-width: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                max-height: 45vh;
+                padding: 10px;
+            }
+
+            .sidebar h3 {
+                font-size: 12px;
+                margin-bottom: 2px;
+            }
+
+            textarea {
+                height: 100px;
+                font-size: 10px;
+                padding: 4px;
+            }
+
+            .main-area {
+                padding: 10px;
+            }
+
+            .hand-container {
+                gap: 6px;
+            }
+
+            .card-slot {
+                width: 110px;
+            }
+
+            .card-img {
+                width: 110px;
+                height: 154px;
+            }
+
+            .card-name {
+                font-size: 10px;
+            }
+
+            .card-tags {
+                font-size: 8px;
+            }
+
+            .action-buttons {
+                gap: 8px;
+                margin-top: 10px;
+            }
+
+            .action-buttons button {
+                padding: 8px 12px;
+                font-size: 11px;
+                width: 100px;
+            }
+
+            .btn-sim {
+                width: 170px !important;
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .insight-col {
+                padding: 5px;
+            }
+
+            .col-title {
+                font-size: 10px;
+                margin-bottom: 6px;
+            }
+
+            .insight-item {
+                font-size: 9px;
+                margin-bottom: 8px;
+                padding-bottom: 5px;
+            }
+
+            fieldset {
+                padding: 6px;
+                margin-top: 3px;
+            }
+
+            legend {
+                font-size: 10px;
+                padding: 0 3px;
+            }
+
+            .stat-row {
+                font-size: 11px;
+                margin: 2px 0;
+            }
+
+            #totalCount {
+                font-size: 11px;
+            }
+
+            .crit-row {
+                font-size: 10px;
+                margin-bottom: 4px;
+            }
+
+            .crit-row input {
+                width: 32px;
+                font-size: 10px;
+            }
+
+            .slider-row {
+                font-size: 10px;
+                margin-bottom: 5px;
+                gap: 6px;
+            }
+
+            .slider-row span {
+                min-width: 25px;
+                font-size: 10px;
+            }
+
+            .insights-section {
+                margin-top: 10px;
+                padding: 6px;
+            }
+        }
+
+        /* Portrait orientation adjustments */
+        @media (max-height: 600px) and (orientation: portrait) {
+            .sidebar {
+                max-height: 40vh;
+            }
+
+            .hand-section {
+                min-height: auto;
+            }
+
+            .action-buttons {
+                margin-top: 8px;
+            }
+        }
+
+        /* Landscape orientation adjustments */
+        @media (max-height: 600px) and (orientation: landscape) {
+            body {
+                height: 100vh;
+            }
+
+            .sidebar {
+                max-height: none;
+                height: 100vh;
+                max-width: 30vw;
+            }
+
+            .main-area {
+                height: 100vh;
+                padding: 10px;
+            }
+
+            .hand-section {
+                min-height: auto;
+                margin-bottom: 10px;
+            }
+
+            .card-slot {
+                width: 100px;
+            }
+
+            .card-img {
+                width: 100px;
+                height: 140px;
+            }
+
+            .action-buttons {
+                margin-top: 8px;
+                gap: 8px;
+            }
+
+            .insights-section {
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
