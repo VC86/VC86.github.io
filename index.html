@@ -201,6 +201,10 @@
             object-fit: cover;
         }
 
+        .card-img.hidden {
+            display: none;
+        }
+
         .card-name {
             font-size: 12px;
             font-weight: bold;
@@ -693,8 +697,17 @@
                 <span id="smoothingValue" style="min-width: 25px; text-align: right;">5</span>
             </div>
             <div class="crit-row" style="justify-content: flex-start; gap: 8px; margin-bottom: 0;">
-                <label for="chkPrioritizePlausible" style="cursor: pointer; color: #AAA; font-family: 'Courier New', Courier, monospace; font-size: 12px;">Smart Sampling</label>
-                <input type="checkbox" id="chkPrioritizePlausible" style="width: auto; accent-color: var(--text-accent);">
+                <label for="chkPrioritizePlausible"
+                    style="cursor: pointer; color: #AAA; font-family: 'Courier New', Courier, monospace; font-size: 12px;">Smart
+                    Sampling</label>
+                <input type="checkbox" id="chkPrioritizePlausible"
+                    style="width: auto; accent-color: var(--text-accent);">
+            </div>
+            <div class="crit-row" style="justify-content: flex-start; gap: 8px; margin-bottom: 0;">
+                <label for="chkHideCardImages"
+                    style="cursor: pointer; color: #AAA; font-family: 'Courier New', Courier, monospace; font-size: 12px;">Hide
+                    Images</label>
+                <input type="checkbox" id="chkHideCardImages" style="width: auto; accent-color: var(--text-accent);">
             </div>
         </fieldset>
     </div>
@@ -733,6 +746,7 @@
         let categoryCounts = {};
         let totalCardCount = 0;
         let regressionWeights = null;
+        let handsRejectedBySmartSampling = 0;
 
         let BAYESIAN_PRIOR_STRENGTH = 5;
 
@@ -919,37 +933,71 @@
             return 1 / (1 + Math.exp(-z));
         }
 
+        function handMeetsCriteria(handCards, criteria) {
+            const counts = { land: 0, ramp: 0, draw: 0 };
+            handCards.forEach(name => {
+                const offName = nameMap[name] || name;
+                const card = cardDB[offName];
+                if (card) {
+                    card.tags.forEach(t => {
+                        if (counts[t] !== undefined) counts[t]++;
+                    });
+                }
+            });
+
+            return counts.land >= criteria.land.min &&
+                counts.land <= criteria.land.max &&
+                counts.ramp >= criteria.ramp.min &&
+                counts.ramp <= criteria.ramp.max &&
+                counts.draw >= criteria.draw.min &&
+                counts.draw <= criteria.draw.max;
+        }
+
         function drawHand() {
             if (!deck.length) return;
 
             const prioritize = document.getElementById('chkPrioritizePlausible').checked;
 
-            if (prioritize && regressionWeights && logs.length >= 10) {
-                let bestHand = null;
-                let closestDistance = Infinity;
+            const criteria = {
+                land: {
+                    min: parseInt(document.getElementById('crit-land-min').value),
+                    max: parseInt(document.getElementById('crit-land-max').value)
+                },
+                ramp: {
+                    min: parseInt(document.getElementById('crit-ramp-min').value),
+                    max: parseInt(document.getElementById('crit-ramp-max').value)
+                },
+                draw: {
+                    min: parseInt(document.getElementById('crit-draw-min').value),
+                    max: parseInt(document.getElementById('crit-draw-max').value)
+                }
+            };
 
-                for (let i = 0; i < 20; i++) {
+            if (prioritize) {
+                // Smart Sampling: only generate hands that meet criteria
+                let hand = null;
+                for (let i = 0; i < 100; i++) {
                     const candidate = generateRandomHand();
-                    const features = getHandFeatures(candidate);
-                    const p = predictProbability(features, regressionWeights);
-                    const dist = Math.abs(p - 0.5);
-                    if (dist < closestDistance) {
-                        closestDistance = dist;
-                        bestHand = candidate;
+                    if (handMeetsCriteria(candidate, criteria)) {
+                        hand = candidate;
+                        handsRejectedBySmartSampling += i;
+                        break;
                     }
                 }
-                currentHand = bestHand;
+                currentHand = hand || generateRandomHand();
             } else {
                 currentHand = generateRandomHand();
             }
 
             const container = document.getElementById('handContainer');
             container.innerHTML = "";
+            const hideImages = document.getElementById('chkHideCardImages').checked;
             currentHand.forEach(name => {
                 const offName = nameMap[name] || name;
                 const data = cardDB[offName] || { img: "", tags: new Set(["others"]), cmc: 0 };
                 const slot = document.createElement('div'); slot.className = 'card-slot';
-                slot.innerHTML = `<img class="card-img" src="${data.img}"><div class="card-name">${name}</div><div class="card-tags">${Array.from(data.tags).map(t => TAGS[t]?.label).join(", ")}</div>`;
+                const imgClass = hideImages ? 'card-img hidden' : 'card-img';
+                slot.innerHTML = `<img class="${imgClass}" src="${data.img}"><div class="card-name">${name}</div><div class="card-tags">${Array.from(data.tags).map(t => TAGS[t]?.label).join(", ")}</div>`;
                 container.appendChild(slot);
             });
             document.getElementById('btnKeep').disabled = false;
@@ -1159,15 +1207,40 @@
                 return;
             }
 
-            const totalHands = logs.length;
+            const prioritize = document.getElementById('chkPrioritizePlausible').checked;
+
+            const criteria = {
+                land: {
+                    min: parseInt(document.getElementById('crit-land-min').value),
+                    max: parseInt(document.getElementById('crit-land-max').value)
+                },
+                ramp: {
+                    min: parseInt(document.getElementById('crit-ramp-min').value),
+                    max: parseInt(document.getElementById('crit-ramp-max').value)
+                },
+                draw: {
+                    min: parseInt(document.getElementById('crit-draw-min').value),
+                    max: parseInt(document.getElementById('crit-draw-max').value)
+                }
+            };
+
+            // Overall keep rate: account for rejected hands in Smart Sampling
+            const totalPresented = logs.length;
             const overallKept = logs.reduce((s, e) => s + e.kept, 0);
-            const overallKeepRate = overallKept / totalHands;
+            const denominator = prioritize ? (totalPresented + handsRejectedBySmartSampling) : totalPresented;
+            const overallKeepRate = denominator > 0 ? overallKept / denominator : 0;
             const overallPct = overallKeepRate * 100;
 
             document.getElementById('insightsSummary').innerText =
-                `${totalHands.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
+                `${totalPresented.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
 
-            const enrichedLogs = logs.map(e => ({
+            // Card metrics: filter to criteria-met hands only when in Smart Sampling mode
+            let filteredLogs = logs;
+            if (prioritize) {
+                filteredLogs = logs.filter(log => handMeetsCriteria(log.cards, criteria));
+            }
+
+            const enrichedLogs = filteredLogs.map(e => ({
                 ...e,
                 cardSet: new Set(e.cards)
             }));
@@ -1326,6 +1399,22 @@
             BAYESIAN_PRIOR_STRENGTH = parseInt(e.target.value);
             document.getElementById('smoothingValue').innerText = e.target.value;
             if (logs.length) rebuildInsights();
+        });
+        document.getElementById('chkPrioritizePlausible').addEventListener('change', e => {
+            logs = [];
+            handsRejectedBySmartSampling = 0;
+            regressionWeights = null;
+            updateUIScores();
+        });
+        document.getElementById('chkHideCardImages').addEventListener('change', e => {
+            const images = document.querySelectorAll('.card-img');
+            images.forEach(img => {
+                if (e.target.checked) {
+                    img.classList.add('hidden');
+                } else {
+                    img.classList.remove('hidden');
+                }
+            });
         });
         document.addEventListener('keydown', e => {
             const active = document.activeElement;
