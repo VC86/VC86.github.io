@@ -4,1449 +4,962 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deck Welder v0.0</title>
+    <title>Deck Welder</title>
     <style>
         :root {
-            --bg-main: #121212;
-            --bg-panel: #1a1a1a;
-            --bg-btn: #2e2e2e;
-            --text-main: #FFFFFF;
-            --text-accent: #C8A97E;
-            --text-muted: #888888;
-            --color-land: #8B5E3C;
-            --color-ramp: #4CAF50;
-            --color-draw: #2196F3;
-            --color-removal: #F44336;
-            --color-others: #9E9E9E;
+            --bg: #0f1115;
+            --panel: #171a21;
+            --panel-2: #1e222b;
+            --border: #2a2f3b;
+            --text: #e8e6e1;
+            --muted: #8b93a1;
+            --accent: #d6b36a;
+            --good: #5cc07a;
+            --bad: #e0645c;
+            --land: #b08968;
+            --ramp: #55b36a;
+            --draw: #4a9be8;
+            --removal: #e0584f;
+            --other: #8b93a1;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }
 
-        .sidebar {
-            width: 320px;
-            background-color: var(--bg-panel);
-            padding: 15px;
+        h1 { margin: 0; font-size: 20px; color: var(--accent); letter-spacing: .5px; }
+        h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+        .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+
+        .side {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            box-sizing: border-box;
-            border-right: 1px solid #333;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
             overflow-y: auto;
         }
 
-        .sidebar h3 {
-            color: var(--text-accent);
-            margin: 0 0 5px 0;
-            font-size: 14px;
-            text-align: center;
-        }
+        main { padding: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+        .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+        .panel-head h2 { margin: 0; }
 
         textarea {
             width: 100%;
-            height: 200px;
-            background-color: #000;
-            color: #FFF;
-            border: 1px solid #333;
-            padding: 5px;
-            resize: none;
-            box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
+            height: 150px;
+            resize: vertical;
+            background: #0b0d11;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            font: 12px/1.4 ui-monospace, Consolas, monospace;
+        }
+
+        input[type=number] {
+            width: 54px;
+            background: var(--panel-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px;
+            text-align: center;
         }
 
         button {
-            padding: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 4px;
-        }
-
-        button:hover:not(:disabled) {
-            opacity: 0.8;
-        }
-
-        button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background-color: var(--text-accent);
-            color: #121212;
-        }
-
-        .btn-secondary {
-            background-color: var(--bg-btn);
-            color: var(--text-accent);
-            font-size: 11px;
-        }
-
-        fieldset {
-            border: 1px solid #333;
-            padding: 10px;
-            margin-top: 5px;
-            border-radius: 4px;
-        }
-
-        legend {
-            font-size: 12px;
-            font-weight: bold;
-            padding: 0 5px;
-            color: #FFF;
-        }
-
-        .stat-row {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 13px;
-            margin: 4px 0;
-        }
-
-        #totalCount {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--text-accent);
-            margin-bottom: 4px;
-        }
-
-        .crit-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            color: #AAA;
-        }
-
-        .crit-row input {
-            width: 40px;
-            background: #2e2e2e;
-            color: #FFF;
-            border: 1px solid #555;
-            text-align: center;
-        }
-
-        .slider-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            color: #AAA;
-            gap: 10px;
-        }
-
-        .slider-row input[type="range"] {
-            flex: 1;
-            accent-color: var(--text-accent);
-        }
-
-        .slider-row span {
-            min-width: 30px;
-            text-align: center;
-        }
-
-        .main-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-
-        .hand-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 350px;
-        }
-
-        .hand-container {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            height: auto;
-            max-width: 100%;
-        }
-
-        .card-slot {
-            width: 150px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-
-        .card-img {
-            width: 150px;
-            height: 210px;
-            background-color: #2a2a2a;
+            font: inherit;
+            font-weight: 600;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
             border-radius: 6px;
-            object-fit: cover;
+            background: var(--panel-2);
+            color: var(--text);
+            cursor: pointer;
         }
+        button:hover:not(:disabled) { border-color: var(--accent); }
+        button:disabled { opacity: .4; cursor: not-allowed; }
+        button.primary { background: var(--accent); border-color: var(--accent); color: #17130a; }
+        button.keep { background: #1f4d30; border-color: #2f7a49; }
+        button.mull { background: #5a2623; border-color: #8d3a35; }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-        .card-img.hidden {
-            display: none;
-        }
+        .row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .row > button { flex: 1; }
+        .status { margin: 8px 0 0; font-size: 12px; color: var(--muted); min-height: 1em; overflow-wrap: anywhere; }
+        .status.warn { color: #e2b34a; }
+        .status.error { color: var(--bad); }
 
-        .card-name {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--text-accent);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-tags {
-            font-size: 10px;
-            font-style: italic;
-            color: var(--text-muted);
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            width: 100%;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .action-buttons button {
-            padding: 12px 20px;
-            font-size: 14px;
-            width: 160px;
-        }
-
-        .btn-keep {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .btn-mull {
-            background-color: #F44336;
-            color: white;
-        }
-
-        .btn-sim {
-            background-color: #7B1FA2;
-            color: white;
-            width: 250px !important;
-        }
-
-        .insights-section {
-            flex-grow: 1;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            margin-top: 15px;
-            overflow: hidden;
-        }
-
-        .insights-header {
-            color: var(--text-accent);
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .insights-summary {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .insights-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 10px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            flex-grow: 1;
-            padding-bottom: 10px;
-        }
-
-        .insight-col {
-            min-width: 0;
-            background-color: var(--bg-panel);
-            border-radius: 4px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            border: 1px solid #333;
-        }
-
-        .col-title {
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 4px;
-        }
-
-        .insight-item {
-            font-family: 'Courier New', Courier, monospace;
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .chip {
             font-size: 11px;
-            margin-bottom: 12px;
-            line-height: 1.35;
-            border-bottom: 1px solid #2a2a2a;
-            padding-bottom: 8px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            background: var(--panel-2);
+            color: var(--text);
+            font-weight: 500;
+        }
+        .chip i, .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: var(--c); }
+        button.chip.on { border-color: var(--accent); color: var(--accent); }
+
+        .rules { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 8px; align-items: center; font-size: 13px; }
+        .rules .head { font-size: 11px; color: var(--muted); text-align: center; }
+
+        .hint { color: var(--muted); font-size: 12px; margin: 0; }
+
+        /* hand */
+        .hand { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .slot { min-width: 0; }
+        .card {
+            position: relative;
+            aspect-ratio: 488 / 680;
+            border-radius: 4.5%;
+            background: var(--panel-2);
+            border: 1px dashed var(--border);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            transition: transform .12s;
+        }
+        .card:hover { transform: translateY(-4px); }
+        .card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .hide-img .card img, .hide-img #peek { display: none; }
+        .slot .name { margin-top: 5px; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .slot .cats { font-size: 11px; color: var(--muted); }
+
+        .verdict { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+        .badge { padding: 2px 10px; border-radius: 99px; font-weight: 700; font-size: 12px; }
+        .badge.keep { background: #1f4d30; color: #8fe3a9; }
+        .badge.mull { background: #5a2623; color: #f2a29c; }
+        .counts { color: var(--muted); font-size: 12px; }
+
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+        .actions button { min-width: 130px; padding: 10px 16px; }
+        .actions label { margin-left: auto; color: var(--muted); font-size: 12px; cursor: pointer; }
+
+        /* ranking */
+        .rank { list-style: none; margin: 8px 0 0; padding: 0; max-height: 640px; overflow-y: auto; }
+        .rank li {
+            display: grid;
+            grid-template-columns: 32px minmax(0, 1fr) 60px minmax(80px, 180px) 46px 50px;
+            gap: 10px;
+            align-items: center;
+            padding: 5px 6px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .rank li:hover { background: var(--panel-2); }
+        .rk { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+        .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nm small { color: var(--muted); margin-left: 4px; }
+        .bar { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; }
+        .bar i { display: block; height: 100%; background: var(--accent); }
+        .pct, .dlt { font-variant-numeric: tabular-nums; text-align: right; }
+        .dlt.up { color: var(--good); }
+        .dlt.down { color: var(--bad); }
+
+        #peek {
+            position: fixed;
+            width: 244px;
+            border-radius: 11px;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 8px 24px #000a;
         }
 
-        .metric-line {
-            margin-top: 2px;
-        }
-
-        .metric-sub {
-            color: #777;
-            margin-left: 8px;
-        }
-
-        .metric-label {
-            color: #AAA;
-        }
-
-        .insight-item-name {
-            color: #CCC;
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-            margin-bottom: 4px;
-        }
-
-        /* === TABLET & MOBILE RESPONSIVE DESIGN === */
-
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 280px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-                height: auto;
-                min-height: 100vh;
-            }
-
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #333;
-                max-height: 50vh;
-                padding: 12px;
-            }
-
-            .sidebar h3 {
-                font-size: 13px;
-                margin-bottom: 3px;
-            }
-
-            textarea {
-                height: 120px;
-                font-size: 11px;
-            }
-
-            .main-area {
-                flex-grow: 1;
-                height: auto;
-                padding: 12px;
-                overflow-y: auto;
-            }
-
-            .hand-section {
-                min-height: auto;
-            }
-
-            .hand-container {
-                gap: 8px;
-            }
-
-            .card-slot {
-                width: 130px;
-            }
-
-            .card-img {
-                width: 130px;
-                height: 182px;
-            }
-
-            .card-name {
-                font-size: 11px;
-            }
-
-            .card-tags {
-                font-size: 9px;
-            }
-
-            .action-buttons {
-                gap: 10px;
-                margin-top: 12px;
-            }
-
-            .action-buttons button {
-                padding: 10px 16px;
-                font-size: 12px;
-                width: 120px;
-            }
-
-            .btn-sim {
-                width: 200px !important;
-            }
-
-            .insights-section {
-                margin-top: 12px;
-                padding: 8px;
-            }
-
-            .insights-grid {
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 8px;
-            }
-
-            .insight-col {
-                padding: 6px;
-            }
-
-            .col-title {
-                font-size: 11px;
-                margin-bottom: 8px;
-            }
-
-            .insight-item {
-                font-size: 10px;
-                margin-bottom: 10px;
-                padding-bottom: 6px;
-            }
-
-            fieldset {
-                padding: 8px;
-                margin-top: 4px;
-            }
-
-            legend {
-                font-size: 11px;
-            }
-
-            .stat-row {
-                font-size: 12px;
-                margin: 3px 0;
-            }
-
-            #totalCount {
-                font-size: 12px;
-                margin-bottom: 3px;
-            }
-
-            .crit-row {
-                font-size: 11px;
-                margin-bottom: 5px;
-            }
-
-            .crit-row input {
-                width: 35px;
-                font-size: 11px;
-            }
-
-            .slider-row {
-                font-size: 11px;
-                margin-bottom: 6px;
-                gap: 8px;
-            }
-
-            .slider-row span {
-                min-width: 28px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .sidebar {
-                max-height: 45vh;
-                padding: 10px;
-            }
-
-            .sidebar h3 {
-                font-size: 12px;
-                margin-bottom: 2px;
-            }
-
-            textarea {
-                height: 100px;
-                font-size: 10px;
-                padding: 4px;
-            }
-
-            .main-area {
-                padding: 10px;
-            }
-
-            .hand-container {
-                gap: 6px;
-            }
-
-            .card-slot {
-                width: 110px;
-            }
-
-            .card-img {
-                width: 110px;
-                height: 154px;
-            }
-
-            .card-name {
-                font-size: 10px;
-            }
-
-            .card-tags {
-                font-size: 8px;
-            }
-
-            .action-buttons {
-                gap: 8px;
-                margin-top: 10px;
-            }
-
-            .action-buttons button {
-                padding: 8px 12px;
-                font-size: 11px;
-                width: 100px;
-            }
-
-            .btn-sim {
-                width: 170px !important;
-            }
-
-            .insights-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .insight-col {
-                padding: 5px;
-            }
-
-            .col-title {
-                font-size: 10px;
-                margin-bottom: 6px;
-            }
-
-            .insight-item {
-                font-size: 9px;
-                margin-bottom: 8px;
-                padding-bottom: 5px;
-            }
-
-            fieldset {
-                padding: 6px;
-                margin-top: 3px;
-            }
-
-            legend {
-                font-size: 10px;
-                padding: 0 3px;
-            }
-
-            .stat-row {
-                font-size: 11px;
-                margin: 2px 0;
-            }
-
-            #totalCount {
-                font-size: 11px;
-            }
-
-            .crit-row {
-                font-size: 10px;
-                margin-bottom: 4px;
-            }
-
-            .crit-row input {
-                width: 32px;
-                font-size: 10px;
-            }
-
-            .slider-row {
-                font-size: 10px;
-                margin-bottom: 5px;
-                gap: 6px;
-            }
-
-            .slider-row span {
-                min-width: 25px;
-                font-size: 10px;
-            }
-
-            .insights-section {
-                margin-top: 10px;
-                padding: 6px;
-            }
-        }
-
-        /* Portrait orientation adjustments */
-        @media (max-height: 600px) and (orientation: portrait) {
-            .sidebar {
-                max-height: 40vh;
-            }
-
-            .hand-section {
-                min-height: auto;
-            }
-
-            .action-buttons {
-                margin-top: 8px;
-            }
-        }
-
-        /* Landscape orientation adjustments */
-        @media (max-height: 600px) and (orientation: landscape) {
-            body {
-                height: 100vh;
-            }
-
-            .sidebar {
-                max-height: none;
-                height: 100vh;
-                max-width: 30vw;
-            }
-
-            .main-area {
-                height: 100vh;
-                padding: 10px;
-            }
-
-            .hand-section {
-                min-height: auto;
-                margin-bottom: 10px;
-            }
-
-            .card-slot {
-                width: 100px;
-            }
-
-            .card-img {
-                width: 100px;
-                height: 140px;
-            }
-
-            .action-buttons {
-                margin-top: 8px;
-                gap: 8px;
-            }
-
-            .insights-section {
-                margin-top: 10px;
-            }
+        @media (max-width: 900px) {
+            .app { grid-template-columns: 1fr; }
+            .side { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+            .hand { grid-template-columns: repeat(4, 1fr); }
+            .actions label { margin-left: 0; }
+            .rank li { grid-template-columns: 28px minmax(0, 1fr) 50px 46px; }
+            .rank .bar, .rank .cats { display: none; }
         }
     </style>
 </head>
 
 <body>
+    <div class="app">
+        <aside class="side">
+            <h1>Deck Welder</h1>
 
-    <div class="sidebar">
-        <h3>DECKLIST</h3>
-        <div style="font-size: 11px; color: #888; margin-bottom: 5px;">Use Moxfield Plain Text Export!</div>
-        <textarea id="deckInput" placeholder="1 Sol Ring&#10;Arcane Signet&#10;35 Island"></textarea>
-        <button class="btn-primary" id="btnAnalyze">ANALYZE DECK</button>
-        <button class="btn-secondary" id="btnExport" disabled>EXPORT STATS (CSV)</button>
-        <button class="btn-secondary" id="btnImport" disabled
-            onclick="document.getElementById('fileInput').click()">IMPORT STATS (CSV)</button>
-        <input type="file" id="fileInput" accept=".csv" style="display: none;">
+            <section>
+                <h2>Deck</h2>
+                <textarea id="deckInput" spellcheck="false"
+                    placeholder="Paste a public Moxfield link, or a decklist:&#10;1 Sol Ring&#10;1x Arcane Signet&#10;35 Island"></textarea>
+                <div class="row"><button class="primary" id="btnLoad">Load deck</button></div>
+                <p class="status" id="status" role="status"></p>
+                <div class="chips" id="deckStats"></div>
+            </section>
 
-        <fieldset>
-            <legend>KEEP SCORE BY CAT.</legend>
-            <div id="totalCount">Total Cards: 0</div>
-            <div id="scoreLabels"></div>
-        </fieldset>
+            <section>
+                <h2>Keep rules</h2>
+                <div class="rules" id="rules"></div>
+                <p class="hint" style="margin-top:8px">A 7-card hand is a keep when every count is within range.</p>
+            </section>
 
-        <fieldset>
-            <legend>KEEP CRITERIA (⚡)</legend>
-            <div class="crit-row"><span>Lands</span><span>min <input type="number" id="crit-land-min"
-                        value="2"></span><span>max <input type="number" id="crit-land-max" value="5"></span></div>
-            <div class="crit-row"><span>Ramp</span><span>min <input type="number" id="crit-ramp-min"
-                        value="1"></span><span>max <input type="number" id="crit-ramp-max" value="7"></span></div>
-            <div class="crit-row"><span>Draw</span><span>min <input type="number" id="crit-draw-min"
-                        value="1"></span><span>max <input type="number" id="crit-draw-max" value="7"></span></div>
-        </fieldset>
+            <section>
+                <h2>Learning</h2>
+                <p class="hint" id="learnInfo"></p>
+                <div class="row">
+                    <button id="btnExport" disabled>Export</button>
+                    <button id="btnImport" disabled>Import</button>
+                    <button id="btnReset" disabled>Reset</button>
+                </div>
+                <input type="file" id="fileInput" accept=".json,application/json" hidden>
+            </section>
+        </aside>
 
-        <fieldset>
-            <legend>OPTIONS</legend>
-            <div class="slider-row">
-                <span style="min-width: 60px;">Smoothing</span>
-                <input type="range" id="smoothingSlider" min="1" max="32" value="5" style="flex: 1;">
-                <span id="smoothingValue" style="min-width: 25px; text-align: right;">5</span>
-            </div>
-            <div class="crit-row" style="justify-content: flex-start; gap: 8px; margin-bottom: 0;">
-                <label for="chkPrioritizePlausible"
-                    style="cursor: pointer; color: #AAA; font-family: 'Courier New', Courier, monospace; font-size: 12px;">Smart
-                    Sampling</label>
-                <input type="checkbox" id="chkPrioritizePlausible"
-                    style="width: auto; accent-color: var(--text-accent);">
-            </div>
-            <div class="crit-row" style="justify-content: flex-start; gap: 8px; margin-bottom: 0;">
-                <label for="chkHideCardImages"
-                    style="cursor: pointer; color: #AAA; font-family: 'Courier New', Courier, monospace; font-size: 12px;">Hide
-                    Images</label>
-                <input type="checkbox" id="chkHideCardImages" style="width: auto; accent-color: var(--text-accent);">
-            </div>
-        </fieldset>
+        <main>
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Opening hand</h2>
+                    <div class="verdict" id="verdict"></div>
+                </div>
+                <div class="hand" id="hand"></div>
+                <div class="actions">
+                    <button class="keep" id="btnKeep" disabled>Keep (←)</button>
+                    <button class="mull" id="btnMull" disabled>Mulligan (→)</button>
+                    <button id="btnNew" disabled>New hand (Space)</button>
+                    <button id="btnUndo" disabled>Undo (⌫)</button>
+                    <label title="Only deal hands that already meet your keep rules"><input type="checkbox" id="chkSmart"> Smart sampling</label>
+                    <label title="Hide card art, e.g. to judge hands by their categories only"><input type="checkbox" id="chkHide"> Hide images</label>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Keepability ranking</h2>
+                    <div class="chips" id="filters" style="margin:0"></div>
+                </div>
+                <p class="hint" id="rankNote">Load a deck to rank its cards from most to least keepable.</p>
+                <ol class="rank" id="rankList"></ol>
+            </section>
+        </main>
     </div>
-
-    <div class="main-area">
-        <div class="hand-section">
-            <div class="hand-container" id="handContainer"></div>
-            <div class="action-buttons">
-                <button class="btn-keep" id="btnKeep" disabled>KEEP</button>
-                <button class="btn-sim" id="btnSim" disabled>⚡ +10</button>
-                <button class="btn-mull" id="btnMull" disabled>MULLIGAN</button>
-            </div>
-        </div>
-
-        <div class="insights-section">
-            <div class="insights-header">CARD INSIGHTS</div>
-            <div class="insights-summary" id="insightsSummary">Analyze a deck to begin.</div>
-            <div class="insights-grid" id="insightsGrid"></div>
-        </div>
-    </div>
+    <img id="peek" alt="" hidden>
 
     <script>
-        const TAGS = {
-            land: { label: "Land", color: "var(--color-land)", query: "t:land format:edh" },
-            ramp: { label: "Ramp", color: "var(--color-ramp)", query: "otag:ramp format:edh" },
-            draw: { label: "Draw", color: "var(--color-draw)", query: "otag:draw format:edh" },
-            removal: { label: "Removal", color: "var(--color-removal)", query: "otag:removal format:edh" },
-            others: { label: "Others", color: "var(--color-others)", query: null }
+        'use strict';
+
+        const HAND_SIZE = 7;
+        const SIM_HANDS = 20000;     // Monte Carlo hands used for the ranking
+        const MIN_DECISIONS = 12;    // decisions needed before the model replaces the rules
+        const HEAVY_MV = 5;          // non-land cards at or above this mana value count as "expensive"
+        const CACHE_KEY = 'deckwelder.cards.v1';
+        const CACHE_TTL = 14 * 24 * 3600 * 1000;
+
+        const CATS = {
+            land: 'Land', ramp: 'Ramp', draw: 'Draw', removal: 'Removal', other: 'Other'
+        };
+        // Lands come from the card's type line; the rest are Scryfall Tagger tags.
+        const TAG_QUERIES = { ramp: 'otag:ramp', draw: 'otag:draw', removal: 'otag:removal' };
+        // Counted per hand: [land, ramp, draw, removal, heavy]
+        const RULES = [
+            { key: 'land', label: 'Lands', min: 2, max: 5 },
+            { key: 'ramp', label: 'Ramp', min: 1, max: 7 },
+            { key: 'draw', label: 'Card draw', min: 1, max: 7 },
+            { key: 'heavy', label: `Expensive (MV ${HEAVY_MV}+)`, min: 0, max: 2 }
+        ];
+        const COUNT_KEYS = ['land', 'ramp', 'draw', 'removal', 'heavy'];
+
+        const S = {
+            cards: [],        // unique cards: { name, qty, img, cmc, cats }
+            flags: [],        // per card: 0/1 for each COUNT_KEYS entry
+            deck: [],         // card indexes, one entry per copy
+            byName: new Map(),
+            hand: [],
+            decisions: [],    // { cards: [name], kept: 0|1 }
+            model: null,      // logistic weights, or null while rules are in charge
+            filter: 'all',
+            deckName: ''
         };
 
-        let logs = [];
-        let cardDB = {};
-        let nameMap = {};
-        let deck = [];
-        let currentHand = [];
-        let categoryCounts = {};
-        let totalCardCount = 0;
-        let regressionWeights = null;
-        let handsRejectedBySmartSampling = 0;
+        const $ = id => document.getElementById(id);
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 
-        let BAYESIAN_PRIOR_STRENGTH = 5;
-
-        const delay = ms => new Promise(res => setTimeout(res, ms));
-
-        function resetState() {
-            logs = []; cardDB = {}; nameMap = {}; deck = []; currentHand = []; categoryCounts = {}; totalCardCount = 0;
-            regressionWeights = null;
-            for (const t in TAGS) categoryCounts[t] = 0;
-            document.getElementById('handContainer').innerHTML = "";
-            document.getElementById('insightsGrid').innerHTML = "";
-            document.getElementById('totalCount').innerText = "Total Cards: 0";
-            initScoreLabels();
+        function el(tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text !== undefined) e.textContent = text;
+            return e;
         }
 
-        function initScoreLabels() {
-            const panel = document.getElementById('scoreLabels');
-            panel.innerHTML = "";
-            for (const [key, info] of Object.entries(TAGS)) {
-                const el = document.createElement('div');
-                el.className = 'stat-row'; el.id = `score-${key}`;
-                el.style.color = info.color; el.innerText = `${info.label} (0): N/A`;
-                panel.appendChild(el);
+        function setStatus(msg, kind = '') {
+            const s = $('status');
+            s.textContent = msg;
+            s.className = 'status ' + kind;
+        }
+
+        /* ---------- Decklist parsing ---------- */
+
+        // Handles "1 Sol Ring", "1x Sol Ring (CMM) 400 *F*", section headers and comment lines.
+        function parseDecklist(text) {
+            const skipHeader = /^(sideboard|commanders?|companion|maybeboard|considering)\s*:?$/i;
+            const mainHeader = /^(deck|mainboard|main)\s*:?$/i;
+            const entries = [];
+            let skipping = false, block = 0, sawHeader = false;
+
+            for (const raw of text.split(/\r?\n/)) {
+                const line = raw.trim();
+                if (!line) { block++; continue; }
+                if (line.startsWith('//') || line.startsWith('#')) continue;
+                if (skipHeader.test(line)) { skipping = sawHeader = true; continue; }
+                if (mainHeader.test(line)) { skipping = false; sawHeader = true; continue; }
+                if (skipping) continue;
+
+                const m = line.match(/^(\d+)\s*x?\s+(.+)$/i);
+                const qty = m ? parseInt(m[1], 10) : 1;
+                const name = (m ? m[2] : line)
+                    .replace(/\s+\*[A-Za-z]\*\s*$/, '')                    // foil marker
+                    .replace(/\s+\([A-Za-z0-9]{2,6}\)(\s+[\w★-]+)*\s*$/, '') // (SET) 123
+                    .replace(/\s+#\S+/g, '')                               // #tags
+                    .trim();
+                if (name) entries.push({ name, qty, block });
+            }
+
+            // Plain exports without headers often list the commander(s) as a first block.
+            let list = entries;
+            if (!sawHeader && entries.length) {
+                const first = entries.filter(e => e.block === entries[0].block);
+                const rest = entries.filter(e => e.block !== entries[0].block);
+                const sum = a => a.reduce((n, e) => n + e.qty, 0);
+                if (sum(first) <= 2 && sum(rest) >= 97) list = rest;
+            }
+
+            const merged = new Map();
+            for (const e of list) {
+                const k = norm(e.name);
+                if (merged.has(k)) merged.get(k).qty += e.qty;
+                else merged.set(k, { name: e.name, qty: e.qty });
+            }
+            const out = [...merged.values()];
+            return { entries: out, total: out.reduce((n, e) => n + e.qty, 0) };
+        }
+
+        /* ---------- Moxfield ---------- */
+
+        function moxfieldId(text) {
+            const m = text.trim().match(/^(?:https?:\/\/)?(?:www\.)?moxfield\.com\/decks\/([\w-]+)/i);
+            return m ? m[1] : null;
+        }
+
+        // Accepts both the v3 ({boards:{mainboard:{cards}}}) and v2 ({mainboard}) payloads.
+        function moxfieldToText(json) {
+            const board = json?.boards?.mainboard?.cards ?? json?.mainboard;
+            if (!board) return null;
+            const lines = Object.values(board)
+                .map(c => `${c.quantity} ${c.card?.name}`)
+                .filter(l => !l.endsWith('undefined'));
+            return lines.length ? { name: json.name || '', text: lines.join('\n') } : null;
+        }
+
+        async function fetchTimeout(url, ms = 8000) {
+            const ctl = new AbortController();
+            const t = setTimeout(() => ctl.abort(), ms);
+            try { return await fetch(url, { signal: ctl.signal }); } finally { clearTimeout(t); }
+        }
+
+        // Moxfield sends no CORS headers, so try it directly and then fall back to public CORS proxies.
+        async function fetchMoxfield(id) {
+            const api = `https://api2.moxfield.com/v3/decks/all/${id}`;
+            const routes = [
+                api,
+                `https://corsproxy.io/?url=${encodeURIComponent(api)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(api)}`,
+                `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(api)}`
+            ];
+            const attempt = async url => {
+                const res = await fetchTimeout(url);
+                const deck = res.ok && moxfieldToText(await res.json());
+                if (!deck) throw new Error('unusable response');
+                return deck;
+            };
+            try {
+                return await attempt(routes[0]);
+            } catch { /* expected: no CORS headers */ }
+            try {
+                return await Promise.any(routes.slice(1).map(attempt)); // first proxy to answer wins
+            } catch { /* all proxies failed */ }
+            throw new Error("Couldn't read that Moxfield deck from the browser (Moxfield blocks cross-site requests " +
+                "and the fallback proxies failed). In Moxfield use Export → Copy for plain text, and paste it here.");
+        }
+
+        /* ---------- Scryfall ---------- */
+
+        async function scryfall(path, body) {
+            const opts = body
+                ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+                : {};
+            for (let attempt = 0; ; attempt++) {
+                const res = await fetch('https://api.scryfall.com' + path, opts);
+                if (res.status === 429 || res.status >= 500) {
+                    if (attempt < 3) { await sleep(1000 * (attempt + 1)); continue; }
+                }
+                if (res.status === 404) return { data: [], not_found: [] }; // search with no matches
+                if (!res.ok) throw new Error(`Scryfall error ${res.status}`);
+                await sleep(100); // stay well under Scryfall's 10 requests/second
+                return res.json();
             }
         }
 
-        function stripNonMainDeck(text) {
-            const skipHeaders = /^\s*(sideboard|commander|companion)\s*:?\s*$/i;
-            const deckHeader = /^\s*deck\s*:?\s*$/i;
-            let skip = false;
-            return text.split('\n').filter(line => {
-                const t = line.trim();
-                if (skipHeaders.test(t)) { skip = true; return false; }
-                if (deckHeader.test(t)) { skip = false; return false; }
-                return !skip;
-            }).join('\n');
+        function chunks(items, size) {
+            const out = [];
+            for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+            return out;
         }
 
-        function parseDecklist(text) {
-            text = stripNonMainDeck(text);
-            let tempDeck = [];
-            const unique = new Set();
-            let count = 0;
-            text.trim().split('\n').forEach(line => {
-                line = line.trim(); if (!line) return;
-                const match = line.match(/^(\d+)[x\s]+(.+)$/);
-                const qty = match ? parseInt(match[1]) : 1;
-                const name = match ? match[2].trim() : line;
-                for (let i = 0; i < qty; i++) tempDeck.push(name);
-                count += qty;
-                unique.add(name);
+        // Group names so each search query stays under Scryfall's length limit.
+        function chunksByLength(names, maxChars = 800) {
+            const out = [[]];
+            let len = 0;
+            for (const n of names) {
+                if (len + n.length > maxChars && out.at(-1).length) { out.push([]); len = 0; }
+                out.at(-1).push(n);
+                len += n.length + 8;
+            }
+            return out;
+        }
+
+        function readCache() {
+            try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { return {}; }
+        }
+
+        function writeCache(cache) {
+            try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch { /* storage unavailable or full */ }
+        }
+
+        // Resolves deck entries to { name, img, cmc, cats } using Scryfall data (cached locally for two weeks).
+        async function resolveCards(entries) {
+            const cache = readCache();
+            const now = Date.now();
+            const info = new Map();   // norm(input name) -> info
+            const todo = [];
+            for (const e of entries) {
+                const hit = cache[norm(e.name)];
+                if (hit && now - hit.ts < CACHE_TTL) info.set(norm(e.name), hit);
+                else todo.push(e.name);
+            }
+
+            const fresh = [];
+            const missing = [];
+            const batches = chunks(todo, 75);
+            for (const [i, batch] of batches.entries()) {
+                setStatus(`Fetching cards… ${i + 1}/${batches.length}`);
+                const { data } = await scryfall('/cards/collection', { identifiers: batch.map(name => ({ name })) });
+                const byKey = new Map();
+                for (const c of data) {
+                    byKey.set(norm(c.name), c);
+                    c.name.split(' // ').forEach(face => byKey.set(norm(face), c));
+                }
+                for (const name of batch) {
+                    const c = byKey.get(norm(name)) ?? byKey.get(norm(name.split(' // ')[0]));
+                    if (!c) { missing.push(name); continue; }
+                    const front = c.card_faces?.[0]?.type_line ?? c.type_line ?? '';
+                    const rec = {
+                        name: c.name,
+                        img: c.image_uris?.normal ?? c.card_faces?.[0]?.image_uris?.normal ?? '',
+                        cmc: typeof c.cmc === 'number' ? c.cmc : 0,
+                        cats: front.includes('Land') ? ['land'] : [],
+                        ts: now
+                    };
+                    info.set(norm(name), rec);
+                    fresh.push([norm(name), rec]);
+                }
+            }
+
+            // Tag the non-land cards we haven't seen before (one search per tag per name chunk).
+            const nonLands = [...new Set(fresh.map(([, r]) => r).filter(r => !r.cats.includes('land')))];
+            const byOfficial = new Map(nonLands.map(r => [r.name, r]));
+            for (const [tag, query] of Object.entries(TAG_QUERIES)) {
+                for (const chunk of chunksByLength(nonLands.map(r => r.name))) {
+                    if (!chunk.length) continue;
+                    setStatus(`Tagging ${tag}…`);
+                    const names = chunk.map(n => `!"${n.replace(/"/g, '\\"')}"`).join(' or ');
+                    const { data } = await scryfall(`/cards/search?q=${encodeURIComponent(`${query} (${names})`)}`);
+                    for (const c of data) byOfficial.get(c.name)?.cats.push(tag);
+                }
+            }
+            fresh.forEach(([, rec]) => { if (!rec.cats.length) rec.cats.push('other'); });
+            for (const [key, rec] of fresh) cache[key] = rec;
+            if (fresh.length) writeCache(cache);
+
+            return { info, missing };
+        }
+
+        /* ---------- Deck state ---------- */
+
+        async function buildDeck(entries) {
+            const { info, missing } = await resolveCards(entries);
+
+            const byName = new Map(), cards = [], deck = [];
+            for (const e of entries) {
+                const rec = info.get(norm(e.name)) ?? { name: e.name, img: '', cmc: 0, cats: ['other'] };
+                let idx = byName.get(rec.name);
+                if (idx === undefined) {
+                    idx = cards.length;
+                    byName.set(rec.name, idx);
+                    cards.push({ name: rec.name, qty: 0, img: rec.img, cmc: rec.cmc, cats: rec.cats });
+                }
+                cards[idx].qty += e.qty;
+                for (let i = 0; i < e.qty; i++) deck.push(idx);
+            }
+
+            Object.assign(S, {
+                cards, deck, byName, hand: [], decisions: [], model: null,
+                flags: cards.map(c => {
+                    const land = c.cats.includes('land');
+                    return [land, c.cats.includes('ramp'), c.cats.includes('draw'),
+                        c.cats.includes('removal'), !land && c.cmc >= HEAVY_MV].map(Number);
+                })
             });
-            deck = tempDeck;
-            totalCardCount = count;
-            return Array.from(unique);
+            return missing;
         }
 
-        async function analyzeDeck() {
-            const text = document.getElementById('deckInput').value;
-            if (!text.trim()) return;
+        function handCounts(idxs) {
+            const counts = [0, 0, 0, 0, 0];
+            for (const i of idxs) for (let k = 0; k < 5; k++) counts[k] += S.flags[i][k];
+            return counts;
+        }
 
-            resetState();
-            const uniqueNames = parseDecklist(text);
-            if (!uniqueNames.length) return;
+        function readRules() {
+            const rules = {};
+            for (const r of RULES) {
+                const min = parseInt($(`r-${r.key}-min`).value, 10);
+                const max = parseInt($(`r-${r.key}-max`).value, 10);
+                rules[r.key] = { min: isNaN(min) ? 0 : min, max: isNaN(max) ? 99 : max };
+            }
+            return rules;
+        }
 
-            const ADMISSIBLE_COUNTS = [60, 98, 99];
-            if (!ADMISSIBLE_COUNTS.includes(totalCardCount)) {
-                alert(`Invalid deck size: ${totalCardCount} cards.\nAdmissible sizes are 60, 98, or 99.`);
+        function ruleKeep(counts, rules) {
+            return RULES.every(r => {
+                const n = counts[COUNT_KEYS.indexOf(r.key)];
+                return n >= rules[r.key].min && n <= rules[r.key].max;
+            });
+        }
+
+        /* ---------- Keep model ---------- */
+
+        // Features: bias, lands, lands off the ideal of 3 (squared), ramp, draw, removal, expensive.
+        const features = c => [1, c[0], (c[0] - 3) ** 2, c[1], c[2], c[3], c[4]];
+        const sigmoid = z => 1 / (1 + Math.exp(-Math.max(-15, Math.min(15, z))));
+
+        // Logistic regression on the user's own keep/mulligan decisions (plain gradient descent, small L2 penalty).
+        function trainModel() {
+            const rows = S.decisions
+                .map(d => ({ idxs: d.cards.map(n => S.byName.get(n)), y: d.kept }))
+                .filter(r => r.idxs.every(i => i !== undefined))
+                .map(r => ({ x: features(handCounts(r.idxs)), y: r.y }));
+            const kept = rows.filter(r => r.y).length;
+            if (rows.length < MIN_DECISIONS || kept < 3 || rows.length - kept < 3) return null;
+
+            const w = new Array(rows[0].x.length).fill(0);
+            for (let epoch = 0; epoch < 3000; epoch++) {
+                const g = new Array(w.length).fill(0);
+                for (const { x, y } of rows) {
+                    const err = sigmoid(w.reduce((s, wj, j) => s + wj * x[j], 0)) - y;
+                    for (let j = 0; j < w.length; j++) g[j] += err * x[j];
+                }
+                for (let j = 0; j < w.length; j++) w[j] -= 0.05 * (g[j] / rows.length + (j ? 0.01 * w[j] : 0));
+            }
+            return w;
+        }
+
+        // Probability that a hand with these counts is a keep: the learned model once trained, else the rules.
+        function keepProbability(counts, rules) {
+            if (S.model) return sigmoid(features(counts).reduce((s, x, j) => s + x * S.model[j], 0));
+            return ruleKeep(counts, rules) ? 1 : 0;
+        }
+
+        // Small seeded PRNG (mulberry32) so the ranking is stable between re-renders.
+        function seededRandom(seed) {
+            return () => {
+                seed = (seed + 0x6D2B79F5) | 0;
+                let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // Keepability of a card = P(keep | card is in the opening hand), estimated over random hands.
+        // With smart sampling it is conditioned on the hand meeting the rules, which only the model can rank.
+        function rankCards(smart) {
+            if (smart && !S.model) return null;
+            const rules = readRules();
+            const random = seededRandom(12345);
+            const n = S.deck.length;
+            const pool = Int32Array.from(S.deck);
+            const sum = new Float64Array(S.cards.length), seen = new Uint32Array(S.cards.length);
+            const stamp = new Int32Array(S.cards.length).fill(-1);
+            let total = 0, accepted = 0;
+
+            for (let h = 0; accepted < SIM_HANDS && h < SIM_HANDS * 5; h++) {
+                for (let i = 0; i < HAND_SIZE; i++) {          // partial Fisher-Yates shuffle
+                    const j = i + Math.floor(random() * (n - i));
+                    [pool[i], pool[j]] = [pool[j], pool[i]];
+                }
+                const hand = pool.subarray(0, HAND_SIZE);
+                const counts = handCounts(hand);
+                if (smart && !ruleKeep(counts, rules)) continue;
+                const p = keepProbability(counts, rules);
+                total += p;
+                accepted++;
+                for (const c of hand) {
+                    if (stamp[c] === h) continue;               // count each card once per hand
+                    stamp[c] = h; sum[c] += p; seen[c]++;
+                }
+            }
+            if (!accepted) return null;                          // the rules can never be met
+            const base = total / accepted;
+            return {
+                base,
+                rows: S.cards
+                    .map((card, i) => ({ card, p: seen[i] ? sum[i] / seen[i] : base }))
+                    .sort((a, b) => b.p - a.p || a.card.name.localeCompare(b.card.name))
+                    .map((r, i) => ({ ...r, rank: i + 1, delta: r.p - base }))
+            };
+        }
+
+        /* ---------- Rendering ---------- */
+
+        function catDots(cats) {
+            const f = document.createDocumentFragment();
+            for (const c of cats) {
+                const d = el('span', 'dot');
+                d.style.setProperty('--c', `var(--${c})`);
+                d.title = CATS[c];
+                f.append(d);
+            }
+            return f;
+        }
+
+        function renderRules() {
+            const box = $('rules');
+            box.append(el('span'), el('span', 'head', 'min'), el('span', 'head', 'max'));
+            for (const r of RULES) {
+                box.append(el('span', '', r.label));
+                for (const bound of ['min', 'max']) {
+                    const input = el('input');
+                    Object.assign(input, { type: 'number', id: `r-${r.key}-${bound}`, value: r[bound], min: 0, max: 99 });
+                    input.addEventListener('input', refresh);
+                    box.append(input);
+                }
+            }
+        }
+
+        function renderDeckStats() {
+            const box = $('deckStats');
+            box.replaceChildren();
+            if (!S.deck.length) return;
+            box.append(el('span', 'chip', `${S.deck.length} cards`));
+            for (const cat of Object.keys(CATS)) {
+                const n = S.cards.reduce((s, c) => s + (c.cats.includes(cat) ? c.qty : 0), 0);
+                if (!n) continue;
+                const chip = el('span', 'chip');
+                const dot = el('i');
+                dot.style.setProperty('--c', `var(--${cat})`);
+                chip.append(dot, `${CATS[cat]} ${n}`);
+                box.append(chip);
+            }
+        }
+
+        function renderHand() {
+            const box = $('hand');
+            box.replaceChildren();
+            const loaded = S.deck.length > 0;
+            for (let i = 0; i < HAND_SIZE; i++) {
+                const slot = el('div', 'slot');
+                const card = el('div', 'card');
+                const c = S.cards[S.hand[i]];
+                if (c) {
+                    card.style.border = '0';
+                    card.append(c.name);
+                    if (c.img) {
+                        const img = el('img');
+                        img.alt = c.name; img.src = c.img;
+                        img.addEventListener('error', () => img.remove());
+                        card.append(img);
+                    }
+                    slot.append(card, el('div', 'name', c.name));
+                    const cats = el('div', 'cats');
+                    cats.append(catDots(c.cats), c.cats.map(k => CATS[k]).join(', '));
+                    slot.append(cats);
+                } else {
+                    slot.append(card);
+                }
+                box.append(slot);
+            }
+            for (const id of ['btnKeep', 'btnMull', 'btnNew']) $(id).disabled = !loaded;
+            renderVerdict();
+        }
+
+        function renderVerdict() {
+            const box = $('verdict');
+            box.replaceChildren();
+            if (!S.hand.length) return;
+            const counts = handCounts(S.hand);
+            const rules = readRules();
+            const keep = ruleKeep(counts, rules);
+            box.append(el('span', `badge ${keep ? 'keep' : 'mull'}`, keep ? 'Rules: keep' : 'Rules: mulligan'));
+            if (S.model) box.append(el('span', 'badge', `Model: ${Math.round(keepProbability(counts, rules) * 100)}% keep`));
+            box.append(el('span', 'counts',
+                `${counts[0]} land · ${counts[1]} ramp · ${counts[2]} draw · ${counts[3]} removal · ${counts[4]} expensive`));
+        }
+
+        function renderLearning() {
+            const n = S.decisions.length, kept = S.decisions.filter(d => d.kept).length;
+            let msg;
+            if (S.model) msg = `Ranking uses a model trained on your ${n} decisions (${kept} kept).`;
+            else if (!n) msg = `Ranking uses your keep rules. Keep or mulligan hands to teach the model (it needs ${MIN_DECISIONS}, with at least 3 of each).`;
+            else msg = `${n} decision${n > 1 ? 's' : ''} so far (${kept} kept). Still using your rules until there are ${MIN_DECISIONS} with at least 3 of each.`;
+            $('learnInfo').textContent = msg;
+            $('btnExport').disabled = $('btnReset').disabled = !n;
+            $('btnImport').disabled = !S.deck.length;
+            $('btnUndo').disabled = !n;
+        }
+
+        function renderRanking() {
+            const filters = $('filters'), list = $('rankList');
+            list.replaceChildren();
+            filters.replaceChildren();
+            if (!S.deck.length) return;
+
+            const smart = $('chkSmart').checked;
+            const ranked = rankCards(smart);
+            if (!ranked) {
+                $('rankNote').textContent = smart && !S.model
+                    ? `Smart sampling ranks cards among hands that already meet your rules, which needs a trained model. ` +
+                      `Record ${MIN_DECISIONS} decisions (at least 3 keeps and 3 mulligans) or turn smart sampling off.`
+                    : 'No random hand meets your keep rules. Loosen them to get a ranking.';
                 return;
             }
-
-            const btnAnalyze = document.getElementById('btnAnalyze');
-            btnAnalyze.disabled = true; btnAnalyze.innerText = "FETCHING...";
-
-            for (let i = 0; i < uniqueNames.length; i += 75) {
-                const batch = uniqueNames.slice(i, i + 75);
-                try {
-                    const res = await fetch("https://api.scryfall.com/cards/collection", {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ identifiers: batch.map(n => ({ name: n })) })
-                    });
-                    const data = await res.json();
-                    (data.data || []).forEach(card => {
-                        const offName = card.name;
-                        const frontName = offName.split(" // ")[0].trim();
-                        const inputName = batch.find(n =>
-                            n.toLowerCase() === offName.toLowerCase() ||
-                            n.toLowerCase() === frontName.toLowerCase() ||
-                            offName.toLowerCase().includes(n.toLowerCase())
-                        ) || offName;
-
-                        let imgUrl = card.image_uris?.normal || (card.card_faces?.[0]?.image_uris?.normal || "");
-                        let manaValue = typeof card.cmc === 'number' ? card.cmc : 0;
-
-                        nameMap[inputName] = offName;
-                        if (frontName !== offName && !nameMap[frontName]) nameMap[frontName] = offName;
-                        cardDB[offName] = { name: offName, tags: new Set(), img: imgUrl, cmc: manaValue };
-                    });
-                } catch (e) { console.error(e); }
-                await delay(100);
+            const { base, rows } = ranked;
+            for (const key of ['all', ...Object.keys(CATS)]) {
+                if (key !== 'all' && !S.cards.some(c => c.cats.includes(key))) continue;
+                const b = el('button', 'chip' + (S.filter === key ? ' on' : ''), key === 'all' ? 'All' : CATS[key]);
+                b.addEventListener('click', () => { S.filter = key; renderRanking(); });
+                filters.append(b);
             }
 
-            const cardNames = Object.keys(cardDB);
-            for (const [tagKey, info] of Object.entries(TAGS)) {
-                if (!info.query) continue;
-                for (let i = 0; i < cardNames.length; i += 20) {
-                    const chunk = cardNames.slice(i, i + 20);
-                    const q = `${info.query} (${chunk.map(n => `!"${n}"`).join(" or ")})`;
-                    try {
-                        const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(q)}`);
-                        if (res.ok) {
-                            const data = await res.json();
-                            (data.data || []).forEach(card => {
-                                if (cardDB[card.name]) cardDB[card.name].tags.add(tagKey);
-                            });
-                        }
-                    } catch (e) { }
-                    await delay(100);
-                }
+            const source = S.model ? `your ${S.decisions.length} decisions` : 'your keep rules';
+            $('rankNote').textContent =
+                `Chance that a 7-card hand containing the card is a keep, over ${SIM_HANDS.toLocaleString()} random hands ` +
+                `${smart ? 'that meet your rules ' : ''}using ${source}. Deck average: ${(base * 100).toFixed(1)}%. ` +
+                'Hover a row to see the card.';
+
+            const frag = document.createDocumentFragment();
+            for (const r of rows) {
+                if (S.filter !== 'all' && !r.card.cats.includes(S.filter)) continue;
+                const li = el('li');
+                li.dataset.img = r.card.img;
+                const name = el('span', 'nm', r.card.name);
+                if (r.card.qty > 1) name.append(el('small', '', `×${r.card.qty}`));
+                const cats = el('span', 'cats');
+                cats.append(catDots(r.card.cats));
+                const bar = el('span', 'bar');
+                const fill = el('i');
+                fill.style.width = `${(r.p * 100).toFixed(1)}%`;
+                bar.append(fill);
+                const delta = Math.abs(r.delta) < 0.0005 ? '0.0' : (r.delta * 100).toFixed(1);
+                li.append(el('span', 'rk', r.rank), name, cats, bar,
+                    el('span', 'pct', `${(r.p * 100).toFixed(0)}%`),
+                    el('span', 'dlt ' + (r.delta > 0.0005 ? 'up' : r.delta < -0.0005 ? 'down' : ''),
+                        (r.delta > 0 ? '+' : '') + delta));
+                frag.append(li);
             }
-
-            Object.values(cardDB).forEach(data => { if (data.tags.size === 0) data.tags.add("others"); });
-            deck.forEach(deckCard => {
-                const offName = nameMap[deckCard] || deckCard;
-                (cardDB[offName]?.tags || new Set(["others"])).forEach(t => categoryCounts[t]++);
-            });
-
-            updateUIScores();
-
-            btnAnalyze.disabled = false;
-            btnAnalyze.innerText = "ANALYZE DECK";
-
-            ['btnExport', 'btnImport', 'btnSim'].forEach(id => {
-                document.getElementById(id).disabled = false;
-            });
-
-            drawHand();
-
-            document.body.tabIndex = -1;
-            document.body.focus();
+            list.append(frag);
         }
 
-        function generateRandomHand() {
-            let shuffled = [...deck];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        // Re-render everything that depends on the rules or the model.
+        function refresh() {
+            S.model = trainModel();
+            renderLearning();
+            renderVerdict();
+            renderRanking();
+        }
+
+        /* ---------- Hands & decisions ---------- */
+
+        function randomHand() {
+            const pool = [...S.deck];
+            for (let i = 0; i < HAND_SIZE; i++) {
+                const j = i + Math.floor(Math.random() * (pool.length - i));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
             }
-            return shuffled.slice(0, 7);
-        }
-
-        function getHandFeatures(handCards) {
-            const counts = { land: 0, ramp: 0, draw: 0 };
-            let totalCmc = 0;
-            handCards.forEach(name => {
-                const offName = nameMap[name] || name;
-                const card = cardDB[offName];
-                if (card) {
-                    totalCmc += card.cmc || 0;
-                    card.tags.forEach(t => {
-                        if (counts[t] !== undefined) counts[t]++;
-                    });
-                }
-            });
-            const nLand = counts.land / 7;
-            const nRamp = counts.ramp / 7;
-            const nDraw = counts.draw / 7;
-            const nCmc = totalCmc / 35; // Standard scaling factor for opening hand weight
-            return [
-                1,
-                nLand, nLand * nLand,
-                nRamp, nRamp * nRamp,
-                nDraw, nDraw * nDraw,
-                nCmc, nCmc * nCmc
-            ];
-        }
-
-        function predictProbability(features, weights) {
-            let z = 0;
-            for (let j = 0; j < weights.length; j++) {
-                z += weights[j] * features[j];
-            }
-            z = Math.max(-15, Math.min(15, z));
-            return 1 / (1 + Math.exp(-z));
-        }
-
-        function handMeetsCriteria(handCards, criteria) {
-            const counts = { land: 0, ramp: 0, draw: 0 };
-            handCards.forEach(name => {
-                const offName = nameMap[name] || name;
-                const card = cardDB[offName];
-                if (card) {
-                    card.tags.forEach(t => {
-                        if (counts[t] !== undefined) counts[t]++;
-                    });
-                }
-            });
-
-            return counts.land >= criteria.land.min &&
-                counts.land <= criteria.land.max &&
-                counts.ramp >= criteria.ramp.min &&
-                counts.ramp <= criteria.ramp.max &&
-                counts.draw >= criteria.draw.min &&
-                counts.draw <= criteria.draw.max;
+            return pool.slice(0, HAND_SIZE);
         }
 
         function drawHand() {
-            if (!deck.length) return;
-
-            const prioritize = document.getElementById('chkPrioritizePlausible').checked;
-
-            const criteria = {
-                land: {
-                    min: parseInt(document.getElementById('crit-land-min').value),
-                    max: parseInt(document.getElementById('crit-land-max').value)
-                },
-                ramp: {
-                    min: parseInt(document.getElementById('crit-ramp-min').value),
-                    max: parseInt(document.getElementById('crit-ramp-max').value)
-                },
-                draw: {
-                    min: parseInt(document.getElementById('crit-draw-min').value),
-                    max: parseInt(document.getElementById('crit-draw-max').value)
-                }
-            };
-
-            if (prioritize) {
-                // Smart Sampling: only generate hands that meet criteria
-                let hand = null;
+            if (!S.deck.length) return;
+            S.hand = randomHand();
+            if ($('chkSmart').checked) {
+                // Rejection sampling: deal only hands that meet the rules (fall back to a random hand).
+                const rules = readRules();
                 for (let i = 0; i < 100; i++) {
-                    const candidate = generateRandomHand();
-                    if (handMeetsCriteria(candidate, criteria)) {
-                        hand = candidate;
-                        handsRejectedBySmartSampling += i;
-                        break;
-                    }
+                    const hand = randomHand();
+                    if (ruleKeep(handCounts(hand), rules)) { S.hand = hand; break; }
                 }
-                currentHand = hand || generateRandomHand();
-            } else {
-                currentHand = generateRandomHand();
             }
-
-            const container = document.getElementById('handContainer');
-            container.innerHTML = "";
-            const hideImages = document.getElementById('chkHideCardImages').checked;
-            currentHand.forEach(name => {
-                const offName = nameMap[name] || name;
-                const data = cardDB[offName] || { img: "", tags: new Set(["others"]), cmc: 0 };
-                const slot = document.createElement('div'); slot.className = 'card-slot';
-                const imgClass = hideImages ? 'card-img hidden' : 'card-img';
-                slot.innerHTML = `<img class="${imgClass}" src="${data.img}"><div class="card-name">${name}</div><div class="card-tags">${Array.from(data.tags).map(t => TAGS[t]?.label).join(", ")}</div>`;
-                container.appendChild(slot);
-            });
-            document.getElementById('btnKeep').disabled = false;
-            document.getElementById('btnMull').disabled = false;
+            renderHand();
         }
 
-        function recordDecision(kept) {
-            const handTags = new Set(), handCards = [];
-            currentHand.forEach(name => {
-                const offName = nameMap[name] || name;
-                handCards.push(offName);
-                (cardDB[offName]?.tags || new Set(["others"])).forEach(t => handTags.add(t));
-            });
-            logs.push({ cards: handCards, tags: Array.from(handTags), kept: kept ? 1 : 0 });
-            updateUIScores();
+        function decide(kept) {
+            if (!S.hand.length) return;
+            S.decisions.push({ cards: S.hand.map(i => S.cards[i].name), kept: kept ? 1 : 0 });
+            refresh();
             drawHand();
         }
 
-        function getLiftColor(lift) {
-            if (lift < 0.5) return "#F44336";
-            if (lift > 1.5) return "#4CAF50";
-            return "#FFC107";
+        function undo() {
+            const last = S.decisions.pop();
+            if (!last) return;
+            S.hand = last.cards.map(n => S.byName.get(n)).filter(i => i !== undefined);
+            refresh();
+            renderHand();
         }
 
-        function categoryHasAllValidLifts(tag) {
-            if (!logs.length) return false;
+        /* ---------- Loading ---------- */
 
-            const enrichedLogs = logs.map(e => ({
-                ...e,
-                cardSet: new Set(e.cards)
-            }));
-
-            const cardNamesSeen = new Set();
-            enrichedLogs.forEach(e => {
-                e.cardSet.forEach(c => cardNamesSeen.add(c));
-            });
-
-            const cardsInTag = Array.from(cardNamesSeen).filter(name =>
-                (cardDB[name]?.tags || new Set(["others"])).has(tag)
-            );
-
-            for (const cardName of cardsInTag) {
-                const { lift } = computeLiftForLogs(enrichedLogs, cardName);
-                if (lift === null || lift === Infinity) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        function trainRegressionModel() {
-            if (logs.length < 10) {
-                regressionWeights = null;
-                return;
-            }
-
-            const X = [];
-            const y = [];
-
-            logs.forEach(log => {
-                const counts = { land: 0, ramp: 0, draw: 0 };
-                let totalCmc = 0;
-                log.cards.forEach(c => {
-                    const card = cardDB[c];
-                    if (card) {
-                        totalCmc += card.cmc || 0;
-                        card.tags.forEach(t => {
-                            if (counts[t] !== undefined) counts[t]++;
-                        });
-                    }
-                });
-                const nLand = counts.land / 7;
-                const nRamp = counts.ramp / 7;
-                const nDraw = counts.draw / 7;
-                const nCmc = totalCmc / 35;
-                X.push([
-                    1,
-                    nLand, nLand * nLand,
-                    nRamp, nRamp * nRamp,
-                    nDraw, nDraw * nDraw,
-                    nCmc, nCmc * nCmc
-                ]);
-                y.push(log.kept);
-            });
-
-            let weights = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-            const learningRate = 0.1;
-            const epochs = 1200;
-            const lambda = 0.1;
-
-            for (let epoch = 0; epoch < epochs; epoch++) {
-                let gradients = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-                for (let i = 0; i < X.length; i++) {
-                    const xi = X[i];
-                    const yi = y[i];
-                    const p = predictProbability(xi, weights);
-                    const error = p - yi;
-                    for (let j = 0; j < weights.length; j++) {
-                        gradients[j] += error * xi[j];
-                    }
-                }
-                for (let j = 0; j < weights.length; j++) {
-                    const regularization = j === 0 ? 0 : lambda * weights[j];
-                    weights[j] -= (learningRate / X.length) * (gradients[j] + regularization);
-                }
-            }
-            regressionWeights = weights;
-        }
-
-        function updateUIScores() {
-            document.getElementById('totalCount').innerText = `Total Cards: ${totalCardCount}`;
-            const catStats = {};
-            logs.forEach(e => e.tags.forEach(t => { if (!catStats[t]) catStats[t] = []; catStats[t].push(e.kept); }));
-            for (const [tag, info] of Object.entries(TAGS)) {
-                const el = document.getElementById(`score-${tag}`);
-                const cnt = categoryCounts[tag] || 0;
-                if (catStats[tag] && categoryHasAllValidLifts(tag)) {
-                    const sum = catStats[tag].reduce((a, b) => a + b, 0);
-                    const score = ((sum / catStats[tag].length) * 100).toFixed(1);
-                    el.innerText = `${info.label} (${cnt}): ${score}%`;
-                    el.style.color = score >= 50 ? "#4CAF50" : info.color;
-                } else {
-                    el.innerText = `${info.label} (${cnt}): N/A`;
-                    el.style.color = info.color;
-                }
-            }
-
-            trainRegressionModel();
-            rebuildInsights();
-        }
-
-        function computeLiftForLogs(logList, cardName, overallKeepRate, priorStrength) {
-            let seen = 0;
-            let keptWith = 0;
-            let notSeen = 0;
-            let keptWithout = 0;
-
-            logList.forEach(e => {
-                const hasCard = e.cardSet.has(cardName);
-
-                if (hasCard) {
-                    seen++;
-                    keptWith += e.kept;
-                } else {
-                    notSeen++;
-                    keptWithout += e.kept;
-                }
-            });
-
-            const alpha = priorStrength * overallKeepRate;
-            const beta = priorStrength * (1 - overallKeepRate);
-
-            const pWith = seen > 0 ? (alpha + keptWith) / (alpha + beta + seen) : null;
-            const pWithout = notSeen > 0 ? (alpha + keptWithout) / (alpha + beta + notSeen) : null;
-
-            let lift;
-
-            if (pWith === null || pWithout === null) {
-                lift = null;
-            } else if (pWithout === 0) {
-                lift = pWith > 0 ? Infinity : 1;
-            } else {
-                lift = pWith / pWithout;
-            }
-
-            return {
-                seen,
-                notSeen,
-                keptWith,
-                keptWithout,
-                pWith,
-                pWithout,
-                lift
-            };
-        }
-
-        function formatLift(lift) {
-            if (lift === null || lift === Infinity) return "N/A";
-            return `×${lift.toFixed(2)}`;
-        }
-
-        function formatPct(value) {
-            if (value === null) return "N/A";
-            return `${(value * 100).toFixed(1)}%`;
-        }
-
-        function getLiftBar(lift) {
-            const barLift = lift === null || lift === Infinity ? 0 : lift;
-
-            return "█"
-                .repeat(Math.floor(Math.min(1, barLift / 2) * 16))
-                .padEnd(16, "░");
-        }
-
-        function getDisplayLiftColor(lift) {
-            if (lift === null || lift === Infinity) return "#888888";
-            return getLiftColor(lift);
-        }
-
-        function rebuildInsights() {
-            const grid = document.getElementById('insightsGrid');
-            grid.innerHTML = "";
-
-            if (!logs.length) {
-                document.getElementById('insightsSummary').innerText = "Analyze a deck to begin.";
-                return;
-            }
-
-            const prioritize = document.getElementById('chkPrioritizePlausible').checked;
-
-            const criteria = {
-                land: {
-                    min: parseInt(document.getElementById('crit-land-min').value),
-                    max: parseInt(document.getElementById('crit-land-max').value)
-                },
-                ramp: {
-                    min: parseInt(document.getElementById('crit-ramp-min').value),
-                    max: parseInt(document.getElementById('crit-ramp-max').value)
-                },
-                draw: {
-                    min: parseInt(document.getElementById('crit-draw-min').value),
-                    max: parseInt(document.getElementById('crit-draw-max').value)
-                }
-            };
-
-            // Overall keep rate: account for rejected hands in Smart Sampling
-            const totalPresented = logs.length;
-            const overallKept = logs.reduce((s, e) => s + e.kept, 0);
-            const denominator = prioritize ? (totalPresented + handsRejectedBySmartSampling) : totalPresented;
-            const overallKeepRate = denominator > 0 ? overallKept / denominator : 0;
-            const overallPct = overallKeepRate * 100;
-
-            document.getElementById('insightsSummary').innerText =
-                `${totalPresented.toLocaleString()} hands logged · ${overallPct.toFixed(1)}% keep rate`;
-
-            // Card metrics: filter to criteria-met hands only when in Smart Sampling mode
-            let filteredLogs = logs;
-            if (prioritize) {
-                filteredLogs = logs.filter(log => handMeetsCriteria(log.cards, criteria));
-            }
-
-            const enrichedLogs = filteredLogs.map(e => ({
-                ...e,
-                cardSet: new Set(e.cards)
-            }));
-
-            const cardNamesSeen = new Set();
-
-            enrichedLogs.forEach(e => {
-                e.cardSet.forEach(c => cardNamesSeen.add(c));
-            });
-
-            ["land", "ramp", "draw", "removal", "others"].forEach(tagKey => {
-                const items = Array.from(cardNamesSeen)
-                    .filter(name => (cardDB[name]?.tags || new Set(["others"])).has(tagKey))
-                    .map(name => {
-                        const { seen, pWith, pWithout, lift } = computeLiftForLogs(enrichedLogs, name, overallKeepRate, BAYESIAN_PRIOR_STRENGTH);
-                        return { name, seen, pWith, pWithout, lift };
-                    })
-                    .sort((a, b) => {
-                        const liftA = a.lift === Infinity ? Number.MAX_VALUE : (a.lift ?? -1);
-                        const liftB = b.lift === Infinity ? Number.MAX_VALUE : (b.lift ?? -1);
-                        return liftB - liftA;
-                    });
-
-                if (!items.length) return;
-
-                const col = document.createElement('div');
-                col.className = 'insight-col';
-
-                col.innerHTML = `
-                <div class="col-title" style="color:${TAGS[tagKey].color}">
-                    ${TAGS[tagKey].label.toUpperCase()}
-                </div>
-            `;
-
-                items.forEach(d => {
-                    const liftColor = getDisplayLiftColor(d.lift);
-                    const bar = getLiftBar(d.lift);
-                    const displayLift = formatLift(d.lift);
-                    const withoutText = d.pWithout === null ? "N/A" : formatPct(d.pWithout);
-
-                    col.innerHTML += `
-                    <div class="insight-item">
-                        <div class="metric-line" style="color:${liftColor}">
-                            ${bar} ${displayLift}
-                        </div>
-                        <div class="insight-item-name">
-                            ${d.name} [n=${d.seen}]
-                        </div>
-                        <div class="metric-sub">
-                            with: ${formatPct(d.pWith)} · without: ${withoutText}
-                        </div>
-                    </div>
-                `;
-                });
-
-                grid.appendChild(col);
-            });
-        }
-
-        function startSimulation() {
-            const btn = document.getElementById('btnSim');
-
-            if (btn.disabled || !deck.length) return;
-
+        async function loadDeck() {
+            const raw = $('deckInput').value.trim();
+            if (!raw) return;
+            const btn = $('btnLoad');
             btn.disabled = true;
-            btn.innerText = "SIMULATING...";
-
-            const criteria = {
-                land: {
-                    min: parseInt(document.getElementById('crit-land-min').value),
-                    max: parseInt(document.getElementById('crit-land-max').value)
-                },
-                ramp: {
-                    min: parseInt(document.getElementById('crit-ramp-min').value),
-                    max: parseInt(document.getElementById('crit-ramp-max').value)
-                },
-                draw: {
-                    min: parseInt(document.getElementById('crit-draw-min').value),
-                    max: parseInt(document.getElementById('crit-draw-max').value)
-                }
-            };
-
-            setTimeout(() => {
-                try {
-                    const mappedDeck = deck.map(n => nameMap[n] || n);
-
-                    for (let i = 0; i < 10; i++) {
-                        let d = [...mappedDeck];
-
-                        for (let j = d.length - 1; j > 0; j--) {
-                            const k = Math.floor(Math.random() * (j + 1));
-                            [d[j], d[k]] = [d[k], d[j]];
-                        }
-
-                        const hand = d.slice(0, 7);
-                        const counts = { land: 0, ramp: 0, draw: 0 };
-                        const tags = new Set();
-
-                        hand.forEach(c => {
-                            (cardDB[c]?.tags || new Set(["others"])).forEach(t => {
-                                if (counts[t] !== undefined) counts[t]++;
-                                tags.add(t);
-                            });
-                        });
-
-                        const keep =
-                            counts.land >= criteria.land.min &&
-                            counts.land <= criteria.land.max &&
-                            counts.ramp >= criteria.ramp.min &&
-                            counts.ramp <= criteria.ramp.max &&
-                            counts.draw >= criteria.draw.min &&
-                            counts.draw <= criteria.draw.max;
-
-                        logs.push({
-                            cards: hand,
-                            tags: Array.from(tags),
-                            kept: keep ? 1 : 0
-                        });
-                    }
-
-                    updateUIScores();
-                } catch (err) {
-                    console.error("Simulation error:", err);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = "⚡ +10";
-                }
-            }, 50);
-        }
-
-        function exportToCSV() {
-            let csv = 'kept,tags,cards\n' + logs.map(e => `${e.kept},${e.tags.join('|')},${e.cards.join('|')}`).join('\n');
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'stats.csv'; a.click();
-        }
-
-        function importFromCSV(file) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                const lines = e.target.result.trim().split('\n');
-                logs = lines.slice(1).map(l => {
-                    const [k, t, c] = l.split(',');
-                    return { kept: parseInt(k), tags: t ? t.split('|') : [], cards: c ? c.split('|') : [] };
-                });
-                updateUIScores(); if (deck.length) drawHand();
-            };
-            reader.readAsText(file);
-        }
-
-        document.getElementById('btnAnalyze').addEventListener('click', analyzeDeck);
-        document.getElementById('btnKeep').addEventListener('click', () => recordDecision(true));
-        document.getElementById('btnMull').addEventListener('click', () => recordDecision(false));
-        document.getElementById('btnSim').addEventListener('click', startSimulation);
-        document.getElementById('btnExport').addEventListener('click', exportToCSV);
-        document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files.length) importFromCSV(e.target.files[0]); });
-        document.getElementById('smoothingSlider').addEventListener('input', e => {
-            BAYESIAN_PRIOR_STRENGTH = parseInt(e.target.value);
-            document.getElementById('smoothingValue').innerText = e.target.value;
-            if (logs.length) rebuildInsights();
-        });
-        document.getElementById('chkPrioritizePlausible').addEventListener('change', e => {
-            logs = [];
-            handsRejectedBySmartSampling = 0;
-            regressionWeights = null;
-            updateUIScores();
-        });
-        document.getElementById('chkHideCardImages').addEventListener('change', e => {
-            const images = document.querySelectorAll('.card-img');
-            images.forEach(img => {
-                if (e.target.checked) {
-                    img.classList.add('hidden');
+            try {
+                let text = raw;
+                const id = moxfieldId(raw);
+                if (id) {
+                    setStatus('Fetching Moxfield deck…');
+                    const deck = await fetchMoxfield(id);
+                    text = deck.text;
+                    S.deckName = deck.name;
+                    $('deckInput').value = text;
+                    history.replaceState(null, '', `?deck=${id}`);
                 } else {
-                    img.classList.remove('hidden');
+                    S.deckName = '';
                 }
-            });
+
+                const parsed = parseDecklist(text);
+                if (parsed.total < HAND_SIZE) throw new Error(`Found only ${parsed.total} cards in that list.`);
+                const missing = await buildDeck(parsed.entries);
+
+                S.filter = 'all';
+                renderDeckStats();
+                refresh();
+                drawHand();
+                const name = S.deckName ? `${S.deckName}: ` : '';
+                if (missing.length) {
+                    setStatus(`${name}${S.deck.length} cards. Not found on Scryfall (treated as Other): ${missing.join(', ')}`, 'warn');
+                } else {
+                    setStatus(`${name}${S.deck.length} cards loaded.`);
+                }
+            } catch (e) {
+                setStatus(e.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function exportDecisions() {
+            const data = { app: 'deck-welder', version: 1, deck: S.deckName, decisions: S.decisions };
+            const a = el('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
+            a.download = 'deck-welder-decisions.json';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        async function importDecisions(file) {
+            try {
+                const data = JSON.parse(await file.text());
+                const all = Array.isArray(data.decisions) ? data.decisions : [];
+                const ok = all.filter(d => Array.isArray(d.cards) && d.cards.length === HAND_SIZE &&
+                    d.cards.every(n => S.byName.has(n)) && (d.kept === 0 || d.kept === 1));
+                S.decisions.push(...ok.map(d => ({ cards: d.cards, kept: d.kept })));
+                refresh();
+                setStatus(`Imported ${ok.length} of ${all.length} decisions` +
+                    (ok.length < all.length ? ' (the rest use cards that are not in this deck).' : '.'),
+                    ok.length < all.length ? 'warn' : '');
+            } catch {
+                setStatus('That file is not a Deck Welder export.', 'error');
+            }
+        }
+
+        /* ---------- Events ---------- */
+
+        $('btnLoad').addEventListener('click', loadDeck);
+        $('btnKeep').addEventListener('click', () => decide(true));
+        $('btnMull').addEventListener('click', () => decide(false));
+        $('btnNew').addEventListener('click', drawHand);
+        $('btnUndo').addEventListener('click', undo);
+        $('chkSmart').addEventListener('change', renderRanking);
+        $('chkHide').addEventListener('change', e => document.body.classList.toggle('hide-img', e.target.checked));
+        $('btnExport').addEventListener('click', exportDecisions);
+        $('btnImport').addEventListener('click', () => $('fileInput').click());
+        $('btnReset').addEventListener('click', () => {
+            if (!confirm('Delete all recorded decisions?')) return;
+            S.decisions = [];
+            refresh();
         });
+        $('fileInput').addEventListener('change', e => {
+            if (e.target.files.length) importDecisions(e.target.files[0]);
+            e.target.value = '';
+        });
+
         document.addEventListener('keydown', e => {
-            const active = document.activeElement;
-            const isTyping =
-                active &&
-                (
-                    active.tagName === 'TEXTAREA' ||
-                    active.tagName === 'INPUT' ||
-                    active.isContentEditable
-                );
-
-            if (isTyping) return;
-
-            if (e.key === "ArrowRight") {
-                e.preventDefault();
-                const btn = document.getElementById('btnMull');
-                if (!btn.disabled) recordDecision(false);
-            }
-
-            if (e.key === "ArrowLeft") {
-                e.preventDefault();
-                const btn = document.getElementById('btnKeep');
-                if (!btn.disabled) recordDecision(true);
-            }
-
-            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                e.preventDefault();
-                const btn = document.getElementById('btnSim');
-                if (!btn.disabled) startSimulation();
-            }
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+            if (!S.deck.length) return;
+            const keys = {
+                ArrowLeft: () => decide(true),
+                ArrowRight: () => decide(false),
+                ArrowDown: drawHand,
+                Backspace: undo
+            };
+            if (e.key === ' ' && e.target.tagName !== 'BUTTON') keys[' '] = drawHand;
+            if (keys[e.key]) { e.preventDefault(); keys[e.key](); }
         });
-        initScoreLabels();
+
+        const peek = $('peek');
+        $('rankList').addEventListener('mousemove', e => {
+            const li = e.target.closest('li');
+            if (!li || !li.dataset.img) { peek.hidden = true; return; }
+            if (peek.src !== li.dataset.img) peek.src = li.dataset.img;
+            peek.hidden = false;
+            peek.style.left = Math.min(e.clientX + 16, innerWidth - 260) + 'px';
+            peek.style.top = Math.max(8, Math.min(e.clientY - 120, innerHeight - 350)) + 'px';
+        });
+        $('rankList').addEventListener('mouseleave', () => { peek.hidden = true; });
+
+        renderRules();
+        renderHand();
+        renderLearning();
+
+        // Shareable links: index.html?deck=<moxfield id or url>
+        const preset = new URLSearchParams(location.search).get('deck');
+        if (preset) {
+            $('deckInput').value = /^[\w-]+$/.test(preset) ? `https://www.moxfield.com/decks/${preset}` : preset;
+            loadDeck();
+        }
     </script>
 </body>
 
