@@ -1,966 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deck Welder</title>
-    <style>
-        :root {
-            --bg: #0f1115;
-            --panel: #171a21;
-            --panel-2: #1e222b;
-            --border: #2a2f3b;
-            --text: #e8e6e1;
-            --muted: #8b93a1;
-            --accent: #d6b36a;
-            --good: #5cc07a;
-            --bad: #e0645c;
-            --land: #b08968;
-            --ramp: #55b36a;
-            --draw: #4a9be8;
-            --removal: #e0584f;
-            --other: #8b93a1;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        }
-
-        h1 { margin: 0; font-size: 20px; color: var(--accent); letter-spacing: .5px; }
-        h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-
-        .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
-
-        .side {
-            background: var(--panel);
-            border-right: 1px solid var(--border);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        main { padding: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-
-        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-        .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-        .panel-head h2 { margin: 0; }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            resize: vertical;
-            background: #0b0d11;
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 8px;
-            font: 12px/1.4 ui-monospace, Consolas, monospace;
-        }
-
-        input[type=number] {
-            width: 54px;
-            background: var(--panel-2);
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 4px;
-            text-align: center;
-        }
-
-        button {
-            font: inherit;
-            font-weight: 600;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--panel-2);
-            color: var(--text);
-            cursor: pointer;
-        }
-        button:hover:not(:disabled) { border-color: var(--accent); }
-        button:disabled { opacity: .4; cursor: not-allowed; }
-        button.primary { background: var(--accent); border-color: var(--accent); color: #17130a; }
-        button.keep { background: #1f4d30; border-color: #2f7a49; }
-        button.mull { background: #5a2623; border-color: #8d3a35; }
-        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-        .row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-        .row > button { flex: 1; }
-        .status { margin: 8px 0 0; font-size: 12px; color: var(--muted); min-height: 1em; overflow-wrap: anywhere; }
-        .status.warn { color: #e2b34a; }
-        .status.error { color: var(--bad); }
-
-        .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-        .chip {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 99px;
-            border: 1px solid var(--border);
-            background: var(--panel-2);
-            color: var(--text);
-            font-weight: 500;
-        }
-        .chip i, .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: var(--c); }
-        button.chip.on { border-color: var(--accent); color: var(--accent); }
-
-        .rules { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 8px; align-items: center; font-size: 13px; }
-        .rules .head { font-size: 11px; color: var(--muted); text-align: center; }
-
-        .hint { color: var(--muted); font-size: 12px; margin: 0; }
-
-        /* hand */
-        .hand { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .slot { min-width: 0; }
-        .card {
-            position: relative;
-            aspect-ratio: 488 / 680;
-            border-radius: 4.5%;
-            background: var(--panel-2);
-            border: 1px dashed var(--border);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px;
-            text-align: center;
-            font-size: 12px;
-            color: var(--muted);
-            transition: transform .12s;
-        }
-        .card:hover { transform: translateY(-4px); }
-        .card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .hide-img .card img, .hide-img #peek { display: none; }
-        .slot .name { margin-top: 5px; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .slot .cats { font-size: 11px; color: var(--muted); }
-
-        .verdict { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; }
-        .badge { padding: 2px 10px; border-radius: 99px; font-weight: 700; font-size: 12px; }
-        .badge.keep { background: #1f4d30; color: #8fe3a9; }
-        .badge.mull { background: #5a2623; color: #f2a29c; }
-        .counts { color: var(--muted); font-size: 12px; }
-
-        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
-        .actions button { min-width: 130px; padding: 10px 16px; }
-        .actions label { margin-left: auto; color: var(--muted); font-size: 12px; cursor: pointer; }
-
-        /* ranking */
-        .rank { list-style: none; margin: 8px 0 0; padding: 0; max-height: 640px; overflow-y: auto; }
-        .rank li {
-            display: grid;
-            grid-template-columns: 32px minmax(0, 1fr) 60px minmax(80px, 180px) 46px 50px;
-            gap: 10px;
-            align-items: center;
-            padding: 5px 6px;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-        }
-        .rank li:hover { background: var(--panel-2); }
-        .rk { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
-        .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .nm small { color: var(--muted); margin-left: 4px; }
-        .bar { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; }
-        .bar i { display: block; height: 100%; background: var(--accent); }
-        .pct, .dlt { font-variant-numeric: tabular-nums; text-align: right; }
-        .dlt.up { color: var(--good); }
-        .dlt.down { color: var(--bad); }
-
-        #peek {
-            position: fixed;
-            width: 244px;
-            border-radius: 11px;
-            pointer-events: none;
-            z-index: 10;
-            box-shadow: 0 8px 24px #000a;
-        }
-
-        @media (max-width: 900px) {
-            .app { grid-template-columns: 1fr; }
-            .side { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
-            .hand { grid-template-columns: repeat(4, 1fr); }
-            .actions label { margin-left: 0; }
-            .rank li { grid-template-columns: 28px minmax(0, 1fr) 50px 46px; }
-            .rank .bar, .rank .cats { display: none; }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Valerio Cambareri</title>
+  <meta name="description" content="Valerio Cambareri: computational imaging, depth sensing and 3D vision. Principal Software Engineer at Sony Depthsensing Solutions, Brussels.">
+  <meta property="og:title" content="Valerio Cambareri">
+  <meta property="og:description" content="Valerio Cambareri: computational imaging, depth sensing and 3D vision. Principal Software Engineer at Sony Depthsensing Solutions, Brussels.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vc86.github.io/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>if (new URLSearchParams(location.search).has("deck")) location.replace("deck-welder/" + location.search);</script>
 </head>
-
 <body>
-    <div class="app">
-        <aside class="side">
-            <h1>Deck Welder</h1>
+  <nav class="site-nav" aria-label="Site">
+    <a class="home" href="">Valerio Cambareri</a>
+    <div class="nav-links"><a href="about/">about</a><a href="publications/">publications</a><a href="patents/">patents</a></div>
+  </nav>
+  <main class="page">
+    <header class="hero">
+      <img class="portrait" src="images/profile.jpg" alt="Portrait of Valerio Cambareri">
+      <div>
+        <h1>Valerio Cambareri</h1>
+        <p class="role">Principal Software Engineer<br>AI &amp; Perception, Sony Depthsensing Solutions<br>Brussels, Belgium</p>
+      <p class="profiles">
+        <a href="https://scholar.google.com/citations?user=yYHJGZUAAAAJ&amp;hl=en">Google Scholar</a>
+        <a href="https://orcid.org/0000-0001-6459-6323">ORCID</a>
+        <a href="https://www.linkedin.com/in/vcambareri/">LinkedIn</a>
+        <a href="https://github.com/VC86">GitHub</a>
+      </p>
+      </div>
+    </header>
 
-            <section>
-                <h2>Deck</h2>
-                <textarea id="deckInput" spellcheck="false"
-                    placeholder="Paste a public Moxfield link, or a decklist:&#10;1 Sol Ring&#10;1x Arcane Signet&#10;35 Island"></textarea>
-                <div class="row"><button class="primary" id="btnLoad">Load deck</button></div>
-                <p class="status" id="status" role="status"></p>
-                <div class="chips" id="deckStats"></div>
-            </section>
-
-            <section>
-                <h2>Keep rules</h2>
-                <div class="rules" id="rules"></div>
-                <p class="hint" style="margin-top:8px">A 7-card hand is a keep when every count is within range.</p>
-            </section>
-
-            <section>
-                <h2>Learning</h2>
-                <p class="hint" id="learnInfo"></p>
-                <div class="row">
-                    <button id="btnExport" disabled>Export</button>
-                    <button id="btnImport" disabled>Import</button>
-                    <button id="btnReset" disabled>Reset</button>
-                </div>
-                <input type="file" id="fileInput" accept=".json,application/json" hidden>
-            </section>
-        </aside>
-
-        <main>
-            <section class="panel">
-                <div class="panel-head">
-                    <h2>Opening hand</h2>
-                    <div class="verdict" id="verdict"></div>
-                </div>
-                <div class="hand" id="hand"></div>
-                <div class="actions">
-                    <button class="keep" id="btnKeep" disabled>Keep (←)</button>
-                    <button class="mull" id="btnMull" disabled>Mulligan (→)</button>
-                    <button id="btnNew" disabled>New hand (Space)</button>
-                    <button id="btnUndo" disabled>Undo (⌫)</button>
-                    <label title="Only deal hands that already meet your keep rules"><input type="checkbox" id="chkSmart"> Smart sampling</label>
-                    <label title="Hide card art, e.g. to judge hands by their categories only"><input type="checkbox" id="chkHide"> Hide images</label>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-head">
-                    <h2>Keepability ranking</h2>
-                    <div class="chips" id="filters" style="margin:0"></div>
-                </div>
-                <p class="hint" id="rankNote">Load a deck to rank its cards from most to least keepable.</p>
-                <ol class="rank" id="rankList"></ol>
-            </section>
-        </main>
+    <div class="lede">
+      <p>I’m a Principal Software Engineer and Member of Technical Staff at Sony Depthsensing Solutions, where I work in the AI &amp; Perception team on the algorithms behind time-of-flight cameras and 3D sensing.</p>
+      <p>My research focuses on computational imaging: designing sensing systems together with the algorithms that reconstruct images and 3D scenes from few, noisy or indirect measurements, within the memory and compute budgets of real devices. Recent work spans depth completion from very sparse time-of-flight measurements, streaming dense depth from low frame rate active sensors, monocular depth estimation for in-cabin safety, and dense SLAM and dynamic scene reconstruction with Gaussian splatting. My earlier research, during my Ph.D. and postdoc, developed compressed sensing methods with guarantees: quantized random embeddings, blind sensor calibration and compressive multispectral imaging.</p>
     </div>
-    <img id="peek" alt="" hidden>
 
-    <script>
-        'use strict';
-
-        const HAND_SIZE = 7;
-        const SIM_HANDS = 20000;     // Monte Carlo hands used for the ranking
-        const MIN_DECISIONS = 12;    // decisions needed before the model replaces the rules
-        const HEAVY_MV = 5;          // non-land cards at or above this mana value count as "expensive"
-        const CACHE_KEY = 'deckwelder.cards.v1';
-        const CACHE_TTL = 14 * 24 * 3600 * 1000;
-
-        const CATS = {
-            land: 'Land', ramp: 'Ramp', draw: 'Draw', removal: 'Removal', other: 'Other'
-        };
-        // Lands come from the card's type line; the rest are Scryfall Tagger tags.
-        const TAG_QUERIES = { ramp: 'otag:ramp', draw: 'otag:draw', removal: 'otag:removal' };
-        // Counted per hand: [land, ramp, draw, removal, heavy]
-        const RULES = [
-            { key: 'land', label: 'Lands', min: 2, max: 5 },
-            { key: 'ramp', label: 'Ramp', min: 1, max: 7 },
-            { key: 'draw', label: 'Card draw', min: 1, max: 7 },
-            { key: 'heavy', label: `Expensive (MV ${HEAVY_MV}+)`, min: 0, max: 2 }
-        ];
-        const COUNT_KEYS = ['land', 'ramp', 'draw', 'removal', 'heavy'];
-
-        const S = {
-            cards: [],        // unique cards: { name, qty, img, cmc, cats }
-            flags: [],        // per card: 0/1 for each COUNT_KEYS entry
-            deck: [],         // card indexes, one entry per copy
-            byName: new Map(),
-            hand: [],
-            decisions: [],    // { cards: [name], kept: 0|1 }
-            model: null,      // logistic weights, or null while rules are in charge
-            filter: 'all',
-            deckName: ''
-        };
-
-        const $ = id => document.getElementById(id);
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-        const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
-
-        function el(tag, cls, text) {
-            const e = document.createElement(tag);
-            if (cls) e.className = cls;
-            if (text !== undefined) e.textContent = text;
-            return e;
-        }
-
-        function setStatus(msg, kind = '') {
-            const s = $('status');
-            s.textContent = msg;
-            s.className = 'status ' + kind;
-        }
-
-        /* ---------- Decklist parsing ---------- */
-
-        // Handles "1 Sol Ring", "1x Sol Ring (CMM) 400 *F*", section headers and comment lines.
-        function parseDecklist(text) {
-            const skipHeader = /^(sideboard|commanders?|companion|maybeboard|considering)\s*:?$/i;
-            const mainHeader = /^(deck|mainboard|main)\s*:?$/i;
-            const entries = [];
-            let skipping = false, block = 0, sawHeader = false;
-
-            for (const raw of text.split(/\r?\n/)) {
-                const line = raw.trim();
-                if (!line) { block++; continue; }
-                if (line.startsWith('//') || line.startsWith('#')) continue;
-                if (skipHeader.test(line)) { skipping = sawHeader = true; continue; }
-                if (mainHeader.test(line)) { skipping = false; sawHeader = true; continue; }
-                if (skipping) continue;
-
-                const m = line.match(/^(\d+)\s*x?\s+(.+)$/i);
-                const qty = m ? parseInt(m[1], 10) : 1;
-                const name = (m ? m[2] : line)
-                    .replace(/\s+\*[A-Za-z]\*\s*$/, '')                    // foil marker
-                    .replace(/\s+\([A-Za-z0-9]{2,6}\)(\s+[\w★-]+)*\s*$/, '') // (SET) 123
-                    .replace(/\s+#\S+/g, '')                               // #tags
-                    .trim();
-                if (name) entries.push({ name, qty, block });
-            }
-
-            // Plain exports without headers often list the commander(s) as a first block.
-            let list = entries;
-            if (!sawHeader && entries.length) {
-                const first = entries.filter(e => e.block === entries[0].block);
-                const rest = entries.filter(e => e.block !== entries[0].block);
-                const sum = a => a.reduce((n, e) => n + e.qty, 0);
-                if (sum(first) <= 2 && sum(rest) >= 97) list = rest;
-            }
-
-            const merged = new Map();
-            for (const e of list) {
-                const k = norm(e.name);
-                if (merged.has(k)) merged.get(k).qty += e.qty;
-                else merged.set(k, { name: e.name, qty: e.qty });
-            }
-            const out = [...merged.values()];
-            return { entries: out, total: out.reduce((n, e) => n + e.qty, 0) };
-        }
-
-        /* ---------- Moxfield ---------- */
-
-        function moxfieldId(text) {
-            const m = text.trim().match(/^(?:https?:\/\/)?(?:www\.)?moxfield\.com\/decks\/([\w-]+)/i);
-            return m ? m[1] : null;
-        }
-
-        // Accepts both the v3 ({boards:{mainboard:{cards}}}) and v2 ({mainboard}) payloads.
-        function moxfieldToText(json) {
-            const board = json?.boards?.mainboard?.cards ?? json?.mainboard;
-            if (!board) return null;
-            const lines = Object.values(board)
-                .map(c => `${c.quantity} ${c.card?.name}`)
-                .filter(l => !l.endsWith('undefined'));
-            return lines.length ? { name: json.name || '', text: lines.join('\n') } : null;
-        }
-
-        async function fetchTimeout(url, ms = 8000) {
-            const ctl = new AbortController();
-            const t = setTimeout(() => ctl.abort(), ms);
-            try { return await fetch(url, { signal: ctl.signal }); } finally { clearTimeout(t); }
-        }
-
-        // Moxfield sends no CORS headers, so try it directly and then fall back to public CORS proxies.
-        async function fetchMoxfield(id) {
-            const api = `https://api2.moxfield.com/v3/decks/all/${id}`;
-            const routes = [
-                api,
-                `https://corsproxy.io/?url=${encodeURIComponent(api)}`,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(api)}`,
-                `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(api)}`
-            ];
-            const attempt = async url => {
-                const res = await fetchTimeout(url);
-                const deck = res.ok && moxfieldToText(await res.json());
-                if (!deck) throw new Error('unusable response');
-                return deck;
-            };
-            try {
-                return await attempt(routes[0]);
-            } catch { /* expected: no CORS headers */ }
-            try {
-                return await Promise.any(routes.slice(1).map(attempt)); // first proxy to answer wins
-            } catch { /* all proxies failed */ }
-            throw new Error("Couldn't read that Moxfield deck from the browser (Moxfield blocks cross-site requests " +
-                "and the fallback proxies failed). In Moxfield use Export → Copy for plain text, and paste it here.");
-        }
-
-        /* ---------- Scryfall ---------- */
-
-        async function scryfall(path, body) {
-            const opts = body
-                ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-                : {};
-            for (let attempt = 0; ; attempt++) {
-                const res = await fetch('https://api.scryfall.com' + path, opts);
-                if (res.status === 429 || res.status >= 500) {
-                    if (attempt < 3) { await sleep(1000 * (attempt + 1)); continue; }
-                }
-                if (res.status === 404) return { data: [], not_found: [] }; // search with no matches
-                if (!res.ok) throw new Error(`Scryfall error ${res.status}`);
-                await sleep(100); // stay well under Scryfall's 10 requests/second
-                return res.json();
-            }
-        }
-
-        function chunks(items, size) {
-            const out = [];
-            for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
-            return out;
-        }
-
-        // Group names so each search query stays under Scryfall's length limit.
-        function chunksByLength(names, maxChars = 800) {
-            const out = [[]];
-            let len = 0;
-            for (const n of names) {
-                if (len + n.length > maxChars && out.at(-1).length) { out.push([]); len = 0; }
-                out.at(-1).push(n);
-                len += n.length + 8;
-            }
-            return out;
-        }
-
-        function readCache() {
-            try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { return {}; }
-        }
-
-        function writeCache(cache) {
-            try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch { /* storage unavailable or full */ }
-        }
-
-        // Resolves deck entries to { name, img, cmc, cats } using Scryfall data (cached locally for two weeks).
-        async function resolveCards(entries) {
-            const cache = readCache();
-            const now = Date.now();
-            const info = new Map();   // norm(input name) -> info
-            const todo = [];
-            for (const e of entries) {
-                const hit = cache[norm(e.name)];
-                if (hit && now - hit.ts < CACHE_TTL) info.set(norm(e.name), hit);
-                else todo.push(e.name);
-            }
-
-            const fresh = [];
-            const missing = [];
-            const batches = chunks(todo, 75);
-            for (const [i, batch] of batches.entries()) {
-                setStatus(`Fetching cards… ${i + 1}/${batches.length}`);
-                const { data } = await scryfall('/cards/collection', { identifiers: batch.map(name => ({ name })) });
-                const byKey = new Map();
-                for (const c of data) {
-                    byKey.set(norm(c.name), c);
-                    c.name.split(' // ').forEach(face => byKey.set(norm(face), c));
-                }
-                for (const name of batch) {
-                    const c = byKey.get(norm(name)) ?? byKey.get(norm(name.split(' // ')[0]));
-                    if (!c) { missing.push(name); continue; }
-                    const front = c.card_faces?.[0]?.type_line ?? c.type_line ?? '';
-                    const rec = {
-                        name: c.name,
-                        img: c.image_uris?.normal ?? c.card_faces?.[0]?.image_uris?.normal ?? '',
-                        cmc: typeof c.cmc === 'number' ? c.cmc : 0,
-                        cats: front.includes('Land') ? ['land'] : [],
-                        ts: now
-                    };
-                    info.set(norm(name), rec);
-                    fresh.push([norm(name), rec]);
-                }
-            }
-
-            // Tag the non-land cards we haven't seen before (one search per tag per name chunk).
-            const nonLands = [...new Set(fresh.map(([, r]) => r).filter(r => !r.cats.includes('land')))];
-            const byOfficial = new Map(nonLands.map(r => [r.name, r]));
-            for (const [tag, query] of Object.entries(TAG_QUERIES)) {
-                for (const chunk of chunksByLength(nonLands.map(r => r.name))) {
-                    if (!chunk.length) continue;
-                    setStatus(`Tagging ${tag}…`);
-                    const names = chunk.map(n => `!"${n.replace(/"/g, '\\"')}"`).join(' or ');
-                    const { data } = await scryfall(`/cards/search?q=${encodeURIComponent(`${query} (${names})`)}`);
-                    for (const c of data) byOfficial.get(c.name)?.cats.push(tag);
-                }
-            }
-            fresh.forEach(([, rec]) => { if (!rec.cats.length) rec.cats.push('other'); });
-            for (const [key, rec] of fresh) cache[key] = rec;
-            if (fresh.length) writeCache(cache);
-
-            return { info, missing };
-        }
-
-        /* ---------- Deck state ---------- */
-
-        async function buildDeck(entries) {
-            const { info, missing } = await resolveCards(entries);
-
-            const byName = new Map(), cards = [], deck = [];
-            for (const e of entries) {
-                const rec = info.get(norm(e.name)) ?? { name: e.name, img: '', cmc: 0, cats: ['other'] };
-                let idx = byName.get(rec.name);
-                if (idx === undefined) {
-                    idx = cards.length;
-                    byName.set(rec.name, idx);
-                    cards.push({ name: rec.name, qty: 0, img: rec.img, cmc: rec.cmc, cats: rec.cats });
-                }
-                cards[idx].qty += e.qty;
-                for (let i = 0; i < e.qty; i++) deck.push(idx);
-            }
-
-            Object.assign(S, {
-                cards, deck, byName, hand: [], decisions: [], model: null,
-                flags: cards.map(c => {
-                    const land = c.cats.includes('land');
-                    return [land, c.cats.includes('ramp'), c.cats.includes('draw'),
-                        c.cats.includes('removal'), !land && c.cmc >= HEAVY_MV].map(Number);
-                })
-            });
-            return missing;
-        }
-
-        function handCounts(idxs) {
-            const counts = [0, 0, 0, 0, 0];
-            for (const i of idxs) for (let k = 0; k < 5; k++) counts[k] += S.flags[i][k];
-            return counts;
-        }
-
-        function readRules() {
-            const rules = {};
-            for (const r of RULES) {
-                const min = parseInt($(`r-${r.key}-min`).value, 10);
-                const max = parseInt($(`r-${r.key}-max`).value, 10);
-                rules[r.key] = { min: isNaN(min) ? 0 : min, max: isNaN(max) ? 99 : max };
-            }
-            return rules;
-        }
-
-        function ruleKeep(counts, rules) {
-            return RULES.every(r => {
-                const n = counts[COUNT_KEYS.indexOf(r.key)];
-                return n >= rules[r.key].min && n <= rules[r.key].max;
-            });
-        }
-
-        /* ---------- Keep model ---------- */
-
-        // Features: bias, lands, lands off the ideal of 3 (squared), ramp, draw, removal, expensive.
-        const features = c => [1, c[0], (c[0] - 3) ** 2, c[1], c[2], c[3], c[4]];
-        const sigmoid = z => 1 / (1 + Math.exp(-Math.max(-15, Math.min(15, z))));
-
-        // Logistic regression on the user's own keep/mulligan decisions (plain gradient descent, small L2 penalty).
-        function trainModel() {
-            const rows = S.decisions
-                .map(d => ({ idxs: d.cards.map(n => S.byName.get(n)), y: d.kept }))
-                .filter(r => r.idxs.every(i => i !== undefined))
-                .map(r => ({ x: features(handCounts(r.idxs)), y: r.y }));
-            const kept = rows.filter(r => r.y).length;
-            if (rows.length < MIN_DECISIONS || kept < 3 || rows.length - kept < 3) return null;
-
-            const w = new Array(rows[0].x.length).fill(0);
-            for (let epoch = 0; epoch < 3000; epoch++) {
-                const g = new Array(w.length).fill(0);
-                for (const { x, y } of rows) {
-                    const err = sigmoid(w.reduce((s, wj, j) => s + wj * x[j], 0)) - y;
-                    for (let j = 0; j < w.length; j++) g[j] += err * x[j];
-                }
-                for (let j = 0; j < w.length; j++) w[j] -= 0.05 * (g[j] / rows.length + (j ? 0.01 * w[j] : 0));
-            }
-            return w;
-        }
-
-        // Probability that a hand with these counts is a keep: the learned model once trained, else the rules.
-        function keepProbability(counts, rules) {
-            if (S.model) return sigmoid(features(counts).reduce((s, x, j) => s + x * S.model[j], 0));
-            return ruleKeep(counts, rules) ? 1 : 0;
-        }
-
-        // Small seeded PRNG (mulberry32) so the ranking is stable between re-renders.
-        function seededRandom(seed) {
-            return () => {
-                seed = (seed + 0x6D2B79F5) | 0;
-                let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-            };
-        }
-
-        // Keepability of a card = P(keep | card is in the opening hand), estimated over random hands.
-        // With smart sampling it is conditioned on the hand meeting the rules, which only the model can rank.
-        function rankCards(smart) {
-            if (smart && !S.model) return null;
-            const rules = readRules();
-            const random = seededRandom(12345);
-            const n = S.deck.length;
-            const pool = Int32Array.from(S.deck);
-            const sum = new Float64Array(S.cards.length), seen = new Uint32Array(S.cards.length);
-            const stamp = new Int32Array(S.cards.length).fill(-1);
-            let total = 0, accepted = 0;
-
-            for (let h = 0; accepted < SIM_HANDS && h < SIM_HANDS * 5; h++) {
-                for (let i = 0; i < HAND_SIZE; i++) {          // partial Fisher-Yates shuffle
-                    const j = i + Math.floor(random() * (n - i));
-                    [pool[i], pool[j]] = [pool[j], pool[i]];
-                }
-                const hand = pool.subarray(0, HAND_SIZE);
-                const counts = handCounts(hand);
-                if (smart && !ruleKeep(counts, rules)) continue;
-                const p = keepProbability(counts, rules);
-                total += p;
-                accepted++;
-                for (const c of hand) {
-                    if (stamp[c] === h) continue;               // count each card once per hand
-                    stamp[c] = h; sum[c] += p; seen[c]++;
-                }
-            }
-            if (!accepted) return null;                          // the rules can never be met
-            const base = total / accepted;
-            return {
-                base,
-                rows: S.cards
-                    .map((card, i) => ({ card, p: seen[i] ? sum[i] / seen[i] : base }))
-                    .sort((a, b) => b.p - a.p || a.card.name.localeCompare(b.card.name))
-                    .map((r, i) => ({ ...r, rank: i + 1, delta: r.p - base }))
-            };
-        }
-
-        /* ---------- Rendering ---------- */
-
-        function catDots(cats) {
-            const f = document.createDocumentFragment();
-            for (const c of cats) {
-                const d = el('span', 'dot');
-                d.style.setProperty('--c', `var(--${c})`);
-                d.title = CATS[c];
-                f.append(d);
-            }
-            return f;
-        }
-
-        function renderRules() {
-            const box = $('rules');
-            box.append(el('span'), el('span', 'head', 'min'), el('span', 'head', 'max'));
-            for (const r of RULES) {
-                box.append(el('span', '', r.label));
-                for (const bound of ['min', 'max']) {
-                    const input = el('input');
-                    Object.assign(input, { type: 'number', id: `r-${r.key}-${bound}`, value: r[bound], min: 0, max: 99 });
-                    input.addEventListener('input', refresh);
-                    box.append(input);
-                }
-            }
-        }
-
-        function renderDeckStats() {
-            const box = $('deckStats');
-            box.replaceChildren();
-            if (!S.deck.length) return;
-            box.append(el('span', 'chip', `${S.deck.length} cards`));
-            for (const cat of Object.keys(CATS)) {
-                const n = S.cards.reduce((s, c) => s + (c.cats.includes(cat) ? c.qty : 0), 0);
-                if (!n) continue;
-                const chip = el('span', 'chip');
-                const dot = el('i');
-                dot.style.setProperty('--c', `var(--${cat})`);
-                chip.append(dot, `${CATS[cat]} ${n}`);
-                box.append(chip);
-            }
-        }
-
-        function renderHand() {
-            const box = $('hand');
-            box.replaceChildren();
-            const loaded = S.deck.length > 0;
-            for (let i = 0; i < HAND_SIZE; i++) {
-                const slot = el('div', 'slot');
-                const card = el('div', 'card');
-                const c = S.cards[S.hand[i]];
-                if (c) {
-                    card.style.border = '0';
-                    card.append(c.name);
-                    if (c.img) {
-                        const img = el('img');
-                        img.alt = c.name; img.src = c.img;
-                        img.addEventListener('error', () => img.remove());
-                        card.append(img);
-                    }
-                    slot.append(card, el('div', 'name', c.name));
-                    const cats = el('div', 'cats');
-                    cats.append(catDots(c.cats), c.cats.map(k => CATS[k]).join(', '));
-                    slot.append(cats);
-                } else {
-                    slot.append(card);
-                }
-                box.append(slot);
-            }
-            for (const id of ['btnKeep', 'btnMull', 'btnNew']) $(id).disabled = !loaded;
-            renderVerdict();
-        }
-
-        function renderVerdict() {
-            const box = $('verdict');
-            box.replaceChildren();
-            if (!S.hand.length) return;
-            const counts = handCounts(S.hand);
-            const rules = readRules();
-            const keep = ruleKeep(counts, rules);
-            box.append(el('span', `badge ${keep ? 'keep' : 'mull'}`, keep ? 'Rules: keep' : 'Rules: mulligan'));
-            if (S.model) box.append(el('span', 'badge', `Model: ${Math.round(keepProbability(counts, rules) * 100)}% keep`));
-            box.append(el('span', 'counts',
-                `${counts[0]} land · ${counts[1]} ramp · ${counts[2]} draw · ${counts[3]} removal · ${counts[4]} expensive`));
-        }
-
-        function renderLearning() {
-            const n = S.decisions.length, kept = S.decisions.filter(d => d.kept).length;
-            let msg;
-            if (S.model) msg = `Ranking uses a model trained on your ${n} decisions (${kept} kept).`;
-            else if (!n) msg = `Ranking uses your keep rules. Keep or mulligan hands to teach the model (it needs ${MIN_DECISIONS}, with at least 3 of each).`;
-            else msg = `${n} decision${n > 1 ? 's' : ''} so far (${kept} kept). Still using your rules until there are ${MIN_DECISIONS} with at least 3 of each.`;
-            $('learnInfo').textContent = msg;
-            $('btnExport').disabled = $('btnReset').disabled = !n;
-            $('btnImport').disabled = !S.deck.length;
-            $('btnUndo').disabled = !n;
-        }
-
-        function renderRanking() {
-            const filters = $('filters'), list = $('rankList');
-            list.replaceChildren();
-            filters.replaceChildren();
-            if (!S.deck.length) return;
-
-            const smart = $('chkSmart').checked;
-            const ranked = rankCards(smart);
-            if (!ranked) {
-                $('rankNote').textContent = smart && !S.model
-                    ? `Smart sampling ranks cards among hands that already meet your rules, which needs a trained model. ` +
-                      `Record ${MIN_DECISIONS} decisions (at least 3 keeps and 3 mulligans) or turn smart sampling off.`
-                    : 'No random hand meets your keep rules. Loosen them to get a ranking.';
-                return;
-            }
-            const { base, rows } = ranked;
-            for (const key of ['all', ...Object.keys(CATS)]) {
-                if (key !== 'all' && !S.cards.some(c => c.cats.includes(key))) continue;
-                const b = el('button', 'chip' + (S.filter === key ? ' on' : ''), key === 'all' ? 'All' : CATS[key]);
-                b.addEventListener('click', () => { S.filter = key; renderRanking(); });
-                filters.append(b);
-            }
-
-            const source = S.model ? `your ${S.decisions.length} decisions` : 'your keep rules';
-            $('rankNote').textContent =
-                `Chance that a 7-card hand containing the card is a keep, over ${SIM_HANDS.toLocaleString()} random hands ` +
-                `${smart ? 'that meet your rules ' : ''}using ${source}. Deck average: ${(base * 100).toFixed(1)}%. ` +
-                'Hover a row to see the card.';
-
-            const frag = document.createDocumentFragment();
-            for (const r of rows) {
-                if (S.filter !== 'all' && !r.card.cats.includes(S.filter)) continue;
-                const li = el('li');
-                li.dataset.img = r.card.img;
-                const name = el('span', 'nm', r.card.name);
-                if (r.card.qty > 1) name.append(el('small', '', `×${r.card.qty}`));
-                const cats = el('span', 'cats');
-                cats.append(catDots(r.card.cats));
-                const bar = el('span', 'bar');
-                const fill = el('i');
-                fill.style.width = `${(r.p * 100).toFixed(1)}%`;
-                bar.append(fill);
-                const delta = Math.abs(r.delta) < 0.0005 ? '0.0' : (r.delta * 100).toFixed(1);
-                li.append(el('span', 'rk', r.rank), name, cats, bar,
-                    el('span', 'pct', `${(r.p * 100).toFixed(0)}%`),
-                    el('span', 'dlt ' + (r.delta > 0.0005 ? 'up' : r.delta < -0.0005 ? 'down' : ''),
-                        (r.delta > 0 ? '+' : '') + delta));
-                frag.append(li);
-            }
-            list.append(frag);
-        }
-
-        // Re-render everything that depends on the rules or the model.
-        function refresh() {
-            S.model = trainModel();
-            renderLearning();
-            renderVerdict();
-            renderRanking();
-        }
-
-        /* ---------- Hands & decisions ---------- */
-
-        function randomHand() {
-            const pool = [...S.deck];
-            for (let i = 0; i < HAND_SIZE; i++) {
-                const j = i + Math.floor(Math.random() * (pool.length - i));
-                [pool[i], pool[j]] = [pool[j], pool[i]];
-            }
-            return pool.slice(0, HAND_SIZE);
-        }
-
-        function drawHand() {
-            if (!S.deck.length) return;
-            S.hand = randomHand();
-            if ($('chkSmart').checked) {
-                // Rejection sampling: deal only hands that meet the rules (fall back to a random hand).
-                const rules = readRules();
-                for (let i = 0; i < 100; i++) {
-                    const hand = randomHand();
-                    if (ruleKeep(handCounts(hand), rules)) { S.hand = hand; break; }
-                }
-            }
-            renderHand();
-        }
-
-        function decide(kept) {
-            if (!S.hand.length) return;
-            S.decisions.push({ cards: S.hand.map(i => S.cards[i].name), kept: kept ? 1 : 0 });
-            refresh();
-            drawHand();
-        }
-
-        function undo() {
-            const last = S.decisions.pop();
-            if (!last) return;
-            S.hand = last.cards.map(n => S.byName.get(n)).filter(i => i !== undefined);
-            refresh();
-            renderHand();
-        }
-
-        /* ---------- Loading ---------- */
-
-        async function loadDeck() {
-            const raw = $('deckInput').value.trim();
-            if (!raw) return;
-            const btn = $('btnLoad');
-            btn.disabled = true;
-            try {
-                let text = raw;
-                const id = moxfieldId(raw);
-                if (id) {
-                    setStatus('Fetching Moxfield deck…');
-                    const deck = await fetchMoxfield(id);
-                    text = deck.text;
-                    S.deckName = deck.name;
-                    $('deckInput').value = text;
-                    history.replaceState(null, '', `?deck=${id}`);
-                } else {
-                    S.deckName = '';
-                }
-
-                const parsed = parseDecklist(text);
-                if (parsed.total < HAND_SIZE) throw new Error(`Found only ${parsed.total} cards in that list.`);
-                const missing = await buildDeck(parsed.entries);
-
-                S.filter = 'all';
-                renderDeckStats();
-                refresh();
-                drawHand();
-                const name = S.deckName ? `${S.deckName}: ` : '';
-                if (missing.length) {
-                    setStatus(`${name}${S.deck.length} cards. Not found on Scryfall (treated as Other): ${missing.join(', ')}`, 'warn');
-                } else {
-                    setStatus(`${name}${S.deck.length} cards loaded.`);
-                }
-            } catch (e) {
-                setStatus(e.message, 'error');
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        function exportDecisions() {
-            const data = { app: 'deck-welder', version: 1, deck: S.deckName, decisions: S.decisions };
-            const a = el('a');
-            a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
-            a.download = 'deck-welder-decisions.json';
-            a.click();
-            URL.revokeObjectURL(a.href);
-        }
-
-        async function importDecisions(file) {
-            try {
-                const data = JSON.parse(await file.text());
-                const all = Array.isArray(data.decisions) ? data.decisions : [];
-                const ok = all.filter(d => Array.isArray(d.cards) && d.cards.length === HAND_SIZE &&
-                    d.cards.every(n => S.byName.has(n)) && (d.kept === 0 || d.kept === 1));
-                S.decisions.push(...ok.map(d => ({ cards: d.cards, kept: d.kept })));
-                refresh();
-                setStatus(`Imported ${ok.length} of ${all.length} decisions` +
-                    (ok.length < all.length ? ' (the rest use cards that are not in this deck).' : '.'),
-                    ok.length < all.length ? 'warn' : '');
-            } catch {
-                setStatus('That file is not a Deck Welder export.', 'error');
-            }
-        }
-
-        /* ---------- Events ---------- */
-
-        $('btnLoad').addEventListener('click', loadDeck);
-        $('btnKeep').addEventListener('click', () => decide(true));
-        $('btnMull').addEventListener('click', () => decide(false));
-        $('btnNew').addEventListener('click', drawHand);
-        $('btnUndo').addEventListener('click', undo);
-        $('chkSmart').addEventListener('change', renderRanking);
-        $('chkHide').addEventListener('change', e => document.body.classList.toggle('hide-img', e.target.checked));
-        $('btnExport').addEventListener('click', exportDecisions);
-        $('btnImport').addEventListener('click', () => $('fileInput').click());
-        $('btnReset').addEventListener('click', () => {
-            if (!confirm('Delete all recorded decisions?')) return;
-            S.decisions = [];
-            refresh();
-        });
-        $('fileInput').addEventListener('change', e => {
-            if (e.target.files.length) importDecisions(e.target.files[0]);
-            e.target.value = '';
-        });
-
-        document.addEventListener('keydown', e => {
-            if (e.ctrlKey || e.metaKey || e.altKey) return;
-            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-            if (!S.deck.length) return;
-            const keys = {
-                ArrowLeft: () => decide(true),
-                ArrowRight: () => decide(false),
-                ArrowDown: drawHand,
-                Backspace: undo
-            };
-            if (e.key === ' ' && e.target.tagName !== 'BUTTON') keys[' '] = drawHand;
-            if (keys[e.key]) { e.preventDefault(); keys[e.key](); }
-        });
-
-        const peek = $('peek');
-        $('rankList').addEventListener('mousemove', e => {
-            const li = e.target.closest('li');
-            if (!li || !li.dataset.img) { peek.hidden = true; return; }
-            if (peek.src !== li.dataset.img) peek.src = li.dataset.img;
-            peek.hidden = false;
-            peek.style.left = Math.min(e.clientX + 16, innerWidth - 260) + 'px';
-            peek.style.top = Math.max(8, Math.min(e.clientY - 120, innerHeight - 350)) + 'px';
-        });
-        $('rankList').addEventListener('mouseleave', () => { peek.hidden = true; });
-
-        renderRules();
-        renderHand();
-        renderLearning();
-
-        // Shareable links: index.html?deck=<moxfield id or url>
-        const preset = new URLSearchParams(location.search).get('deck');
-        if (preset) {
-            $('deckInput').value = /^[\w-]+$/.test(preset) ? `https://www.moxfield.com/decks/${preset}` : preset;
-            loadDeck();
-        }
-    </script>
+    <section>
+      <h2>news</h2>
+      <ul class="news">
+      <li><span class="when">Sep 2026</span><p><a href="https://arxiv.org/abs/2609.32711">ProDyGS</a>, dynamic Gaussian splatting from a single static monocular camera, is now on arXiv.</p></li>
+      <li><span class="when">Oct 2025</span><p><a href="https://arxiv.org/abs/2504.16545">ToF-Splatting</a>, dense SLAM from sparse time-of-flight depth, was presented at ICCV 2025.</p></li>
+      <li><span class="when">Feb 2025</span><p>We released <a href="https://cabnir.github.io/">CabNIR</a>, a benchmark for in-vehicle infrared monocular depth estimation, at WACV 2025.</p></li>
+      <li><span class="when">Oct 2024</span><p><a href="https://andreaconti.github.io/projects/depth_on_demand">Depth on Demand</a> was presented at ECCV 2024.</p></li>
+      <li><span class="when">Jun 2024</span><p>I was elected Member of Technical Staff at Sony Depthsensing Solutions.</p></li>
+      <li><span class="when">Mar 2024</span><p><a href="https://andreaconti.github.io/projects/range_agnostic_multi_view_depth">Range-agnostic multi-view depth estimation</a> was presented at 3DV 2024.</p></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>selected publications</h2>
+    <article class="pub">
+      <div class="thumb"><img src="images/prodygs.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://arxiv.org/pdf/2609.32711">ProDyGS: Dynamic Gaussian Splatting from a Single Static Monocular Camera</a></h3>
+        <p class="authors">Ugo Leone Cavalcanti, Fabio Tosi, Matteo Poggi, Andrea Conti, Vladimir Zlokolica, <span class="me">Valerio Cambareri</span>, Stefano Mattoccia</p>
+        <p class="venue">arXiv, 2026</p>
+        <p class="links"><a href="https://arxiv.org/pdf/2609.32711">pdf</a> <a href="https://arxiv.org/abs/2609.32711">arxiv</a> <a href="https://github.com/ugoleone/ProDyGS">code</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/tof-splatting.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://openaccess.thecvf.com/content/ICCV2025/html/Conti_ToF-Splatting_Dense_SLAM_using_Sparse_Time-of-Flight_Depth_and_Multi-Frame_Integration_ICCV_2025_paper.html">ToF-Splatting: Dense SLAM using Sparse Time-of-Flight Depth and Multi-Frame Integration</a></h3>
+        <p class="authors">Andrea Conti, Matteo Poggi, <span class="me">Valerio Cambareri</span>, Martin R. Oswald, Stefano Mattoccia</p>
+        <p class="venue">ICCV, 2025</p>
+        <p class="links"><a href="https://openaccess.thecvf.com/content/ICCV2025/html/Conti_ToF-Splatting_Dense_SLAM_using_Sparse_Time-of-Flight_Depth_and_Multi-Frame_Integration_ICCV_2025_paper.html">pdf</a> <a href="https://arxiv.org/abs/2504.16545">arxiv</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/cabnir.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://cabnir.github.io/">CabNIR: A Benchmark for In-Vehicle Infrared Monocular Depth Estimation</a></h3>
+        <p class="authors">Ugo Leone Cavalcanti, Matteo Poggi, Fabio Tosi, <span class="me">Valerio Cambareri</span>, Vladimir Zlokolica, Stefano Mattoccia</p>
+        <p class="venue">WACV, 2025</p>
+        <p class="links"><a href="https://cabnir.github.io/">project</a> <a href="https://openaccess.thecvf.com/content/WACV2025/html/Cavalcanti_CabNIR_A_Benchmark_for_In-Vehicle_Infrared_Monocular_Depth_Estimation_WACV_2025_paper.html">pdf</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/depth-on-demand.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://andreaconti.github.io/projects/depth_on_demand">Depth on Demand: Streaming Dense Depth from a Low Frame Rate Active Sensor</a></h3>
+        <p class="authors">Andrea Conti, Matteo Poggi, <span class="me">Valerio Cambareri</span>, Stefano Mattoccia</p>
+        <p class="venue">ECCV, 2024</p>
+        <p class="links"><a href="https://andreaconti.github.io/projects/depth_on_demand">project</a> <a href="https://arxiv.org/pdf/2409.08277">pdf</a> <a href="https://github.com/andreaconti/depth-on-demand">code</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/ramdepth.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://andreaconti.github.io/projects/range_agnostic_multi_view_depth">Range-Agnostic Multi-View Depth Estimation with Keyframe Selection</a></h3>
+        <p class="authors">Andrea Conti, Matteo Poggi, <span class="me">Valerio Cambareri</span>, Stefano Mattoccia</p>
+        <p class="venue">3DV, 2024</p>
+        <p class="links"><a href="https://andreaconti.github.io/projects/range_agnostic_multi_view_depth">project</a> <a href="https://arxiv.org/pdf/2401.14401">pdf</a> <a href="https://github.com/andreaconti/ramdepth">code</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/sparse-tof-qnn.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://arxiv.org/pdf/2205.12918">A Low Memory Footprint Quantized Neural Network for Depth Completion of Very Sparse Time-of-Flight Depth Maps</a></h3>
+        <p class="authors">Xiaowen Jiang, <span class="me">Valerio Cambareri</span>, Gianluca Agresti, Cynthia Ifeyinwa Ugwu, Adriano Simonetto, Fabien Cardinaux, Pietro Zanuttigh</p>
+        <p class="venue">CVPR Workshops, 2022</p>
+        <p class="links"><a href="https://arxiv.org/pdf/2205.12918">pdf</a> <a href="https://arxiv.org/abs/2205.12918">arxiv</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/through-the-haze.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://arxiv.org/pdf/1610.09028">Through the Haze: A Non-Convex Approach to Blind Gain Calibration for Linear Random Sensing Models</a></h3>
+        <p class="authors"><span class="me">Valerio Cambareri</span>, Laurent Jacques</p>
+        <p class="venue">Information and Inference, 2018</p>
+        <p class="links"><a href="https://arxiv.org/pdf/1610.09028">pdf</a> <a href="https://doi.org/10.1093/imaiai/iay004">doi</a> <a href="https://arxiv.org/abs/1610.09028">arxiv</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/fabry-perot.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://arxiv.org/pdf/1802.02040">Multispectral Compressive Imaging Strategies Using Fabry–Pérot Filtered Sensors</a></h3>
+        <p class="authors">Kévin Degraux, <span class="me">Valerio Cambareri</span>, Bert Geelen, Laurent Jacques, Gauthier Lafruit</p>
+        <p class="venue">IEEE Trans. Computational Imaging, 2018</p>
+        <p class="links"><a href="https://arxiv.org/pdf/1802.02040">pdf</a> <a href="https://doi.org/10.1109/TCI.2018.2864659">doi</a> <a href="https://arxiv.org/abs/1802.02040">arxiv</a></p>
+      </div>
+    </article>
+
+    <article class="pub">
+      <div class="thumb"><img src="images/multiclass-encryption.jpg" alt="" loading="lazy"></div>
+      <div>
+        <h3><a href="https://arxiv.org/pdf/1307.3360">Low-Complexity Multiclass Encryption by Compressed Sensing</a></h3>
+        <p class="authors"><span class="me">Valerio Cambareri</span>, Mauro Mangia, Fabio Pareschi, Riccardo Rovatti, Gianluca Setti</p>
+        <p class="venue">IEEE Trans. Signal Processing, 2015</p>
+        <p class="links"><a href="https://arxiv.org/pdf/1307.3360">pdf</a> <a href="https://doi.org/10.1109/TSP.2015.2407315">doi</a> <a href="https://arxiv.org/abs/1307.3360">arxiv</a></p>
+      </div>
+    </article>
+      <p class="more"><a href="publications/">All publications</a></p>
+    </section>
+  </main>
+  <footer class="site-footer">© 2026 Valerio Cambareri</footer>
 </body>
-
 </html>
